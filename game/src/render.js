@@ -237,6 +237,24 @@ for (const [key, file] of Object.entries(SPRITE_FILES)) {
   img.onerror = () => { if (++spritesSettled === Object.keys(SPRITE_FILES).length) window.__spritesReady = true; };
   img.src = file;
 }
+// Photo tiles as framed panels: rounded corners + drop shadow + thin border,
+// so a 3D photo reads as a panel sitting on the counter — not a pasted
+// rectangle slicing through the staff behind it. Clipping never moves the
+// image, so the photo-aligned food anchors below stay valid.
+function drawPhotoPanel(ctx, img, rect) {
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  rr(ctx, rect.x + 3, rect.y + 5, rect.w, rect.h, 14);
+  ctx.fill();
+  ctx.save();
+  rr(ctx, rect.x, rect.y, rect.w, rect.h, 14);
+  ctx.clip();
+  ctx.drawImage(img, rect.x, rect.y, rect.w, rect.h);
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(60,35,20,0.35)';
+  ctx.lineWidth = 2;
+  rr(ctx, rect.x, rect.y, rect.w, rect.h, 14);
+  ctx.stroke();
+}
 // Food anchors measured from the 3D scene (photo slot centres). The layout
 // rects never move - only the food's draw position is photo-aligned;
 // clicks still use the whole station rect.
@@ -882,7 +900,7 @@ function drawStationBase(ctx, rect, label, sub, accent) {
 function drawGrill(ctx, hover) {
   const photo = sprites.grill.ready;
   if (photo) {
-    ctx.drawImage(sprites.grill.img, GRILL.x, GRILL.y, GRILL.w, GRILL.h);
+    drawPhotoPanel(ctx, sprites.grill.img, GRILL);
   } else {
   drawStationBase(ctx, GRILL, 'GRILL', 'patty · 4s', '#c65a3c');
   // Red machine frame + silver rim + dark bed, like the ref grill.
@@ -1000,7 +1018,7 @@ function drawGrill(ctx, hover) {
 function drawChopper(ctx, hover) {
   const photo = sprites.chopper.ready;
   if (photo) {
-    ctx.drawImage(sprites.chopper.img, CHOPPER.x, CHOPPER.y, CHOPPER.w, CHOPPER.h);
+    drawPhotoPanel(ctx, sprites.chopper.img, CHOPPER);
   } else {
   drawStationBase(ctx, CHOPPER, 'CHOPPING BOARD', 'veg · 2s', '#7a9e4b');
   ctx.fillStyle = '#d9b078';
@@ -1082,7 +1100,7 @@ function drawChopper(ctx, hover) {
 
 function drawPot(ctx, hover) {
   if (sprites.pots.ready) {
-    ctx.drawImage(sprites.pots.img, POT.x, POT.y, POT.w, POT.h);
+    drawPhotoPanel(ctx, sprites.pots.img, POT);
   } else {
     drawStationBase(ctx, POT, 'PASTA POT', 'pasta · 5s', '#4a7fb5');
   }
@@ -1165,7 +1183,7 @@ function drawPlate(ctx, hover) {
   const cx = PLATE.x + PLATE.w / 2;
   const cy = PLATE.y + 118;
   if (sprites.plate.ready) {
-    ctx.drawImage(sprites.plate.img, PLATE.x, PLATE.y, PLATE.w, PLATE.h);
+    drawPhotoPanel(ctx, sprites.plate.img, PLATE);
   } else {
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   rr(ctx, PLATE.x + 3, PLATE.y + 5, PLATE.w, PLATE.h, 14);
@@ -1206,8 +1224,13 @@ function drawPlate(ctx, hover) {
   ctx.stroke();
   }
   if (Game.plate.length === 0) {
-    text(ctx, 'empty plate — click ingredients,', cx, cy - 6, 15, '#b9a98e', 'center');
-    text(ctx, 'then click the plate to stack', cx, cy + 16, 15, '#b9a98e', 'center');
+    // Dark pill behind the hint — the 3D plate photo underneath is busy
+    // (bowls at its edges), beige text on it was unreadable.
+    ctx.fillStyle = 'rgba(42,26,18,0.85)';
+    rr(ctx, cx - 175, cy - 26, 350, 56, 13);
+    ctx.fill();
+    text(ctx, 'empty plate — click ingredients,', cx, cy - 6, 15, '#f2e6cf', 'center');
+    text(ctx, 'then click the plate to stack', cx, cy + 16, 15, '#f2e6cf', 'center');
   } else {
     drawPlateStack(ctx, Game.plate, cx, cy);
     drawPlateGarnish(ctx, cx, cy, Game.plate.some((p) => p.kind === 'bun'), Game.plate.some((p) => p.kind === 'pasta'));
@@ -1218,9 +1241,15 @@ function drawPlate(ctx, hover) {
     ctx.lineWidth = 5;
     rr(ctx, PLATE.x - 3, PLATE.y - 3, PLATE.w + 6, PLATE.h + 6, 16);
     ctx.stroke();
-    text(ctx, '✓ ' + recipeById(match.recipeId).name.toUpperCase() + ' — READY TO SERVE!', cx, PLATE.y + PLATE.h - 18, 16, '#7ddc8a', 'center');
+    ctx.fillStyle = 'rgba(42,26,18,0.85)';
+    rr(ctx, cx - 175, PLATE.y + PLATE.h - 40, 350, 26, 13);
+    ctx.fill();
+    text(ctx, '✓ ' + recipeById(match.recipeId).name.toUpperCase() + ' — READY TO SERVE!', cx, PLATE.y + PLATE.h - 27, 16, '#7ddc8a', 'center');
   } else if (Game.plate.length > 0) {
-    text(ctx, 'keep stacking — check the tickets', cx, PLATE.y + PLATE.h - 18, 14, '#c9bda6', 'center');
+    ctx.fillStyle = 'rgba(42,26,18,0.85)';
+    rr(ctx, cx - 175, PLATE.y + PLATE.h - 40, 350, 26, 13);
+    ctx.fill();
+    text(ctx, 'keep stacking — check the tickets', cx, PLATE.y + PLATE.h - 27, 14, '#f2e6cf', 'center');
   }
   if (hover) {
     ctx.strokeStyle = '#ffd94d';
@@ -1438,7 +1467,7 @@ function drawServe(ctx, hover) {
   const match = matchingOrder();
   const shelfY = SERVE.y + SERVE.h - 58;
   if (sprites.serve.ready) {
-    ctx.drawImage(sprites.serve.img, SERVE.x, SERVE.y, SERVE.w, SERVE.h);
+    drawPhotoPanel(ctx, sprites.serve.img, SERVE);
   } else {
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   rr(ctx, SERVE.x + 3, SERVE.y + 5, SERVE.w, SERVE.h, 14);
@@ -1497,6 +1526,19 @@ function drawServe(ctx, hover) {
   ctx.fillRect(SERVE.x + 14, shelfY, SERVE.w - 28, 3);
   ctx.fillStyle = '#8d5a2b';
   ctx.fillRect(SERVE.x + 14, shelfY + 10, SERVE.w - 28, 2);
+  }
+  if (sprites.serve.ready) {
+    // Title bar over the photo — the vector branch above draws its own
+    // title + awning, photo mode had none, so the window was unlabelled.
+    // Same bar pattern as the station headers.
+    ctx.fillStyle = '#7a3226';
+    rr(ctx, SERVE.x, SERVE.y, SERVE.w, 40, 14);
+    ctx.fill();
+    ctx.fillRect(SERVE.x, SERVE.y + 26, SERVE.w, 14);
+    ctx.fillStyle = 'rgba(0,0,0,0.10)';
+    ctx.fillRect(SERVE.x, SERVE.y + 40, SERVE.w, 4);
+    text(ctx, 'SERVICE WINDOW', SERVE.x + 16, SERVE.y + 21, 19, '#fdf6e3');
+    text(ctx, 'click here to serve', SERVE.x + SERVE.w - 14, SERVE.y + 21, 13, 'rgba(255,255,255,0.85)', 'right');
   }
   for (let i = 0; i < 3; i++) {
     ctx.fillStyle = i === 2 ? '#ffffff' : '#e8e2d4';
