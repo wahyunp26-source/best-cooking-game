@@ -20,7 +20,7 @@ const TICKET_TOP = 106;
 const BG_BAND = { x: 0, y: 64, w: 1280, h: 132 };
 const WAITER_CX = 400;
 const WAITRESS_CX = 1030;
-const CHAR_TOP = 64;
+const CHAR_TOP = 68;
 
 // Stations, top row — moved down (was y=92) so the restaurant band reads.
 const GRILL = { x: 320, y: 196, w: 272, h: 150 };

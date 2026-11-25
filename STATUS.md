@@ -119,17 +119,49 @@ positions only — no gameplay change).
   grader-style `MAKEFUN_OUTPUT_DIR=out node main.ts` run twice →
   **byte-identical** (dossier.json 761,785 B, under 1.5 MiB cap).
 
-## Honest verdict after the rebuild
-The look is now genuinely close to Wahyu's reference: warm busy diner,
-characters, red grill, mounded bowls, dispensers, garnished plates — at
-300px it reads as a restaurant kitchen, not a flat UI. Remaining gap vs.
-the reference: the characters are simple cartoon faces (bowl-cut hair,
-wide-set eyes) — charming but not the soft painted look of the reference;
-the food is still vector-drawn, not painterly; the background tables are
-small and partially hidden behind the stations. Verdict: a visibly
-stronger top-40 contender with a real shot at the top 10 if the judge
-values a complete, busy, warm kitchen over painterly art. Do not claim
-top 10 as likely.
+## Visual polish pass v4 (25 Nov ~10:25-10:50 WIB — audit's 6 priorities vs the 3D style target)
+Rendering + layout only (render.js, layout.js); game logic, recipes, scoring,
+timers, controls and the ?test=1 hooks untouched. All 6 audit priorities done:
+1. **Characters bigger + glossier** — faces 34×40→40×46, eyes 8×10→10×12 with
+   bigger irises, shoulders widened, hair volumes enlarged with a gloss sweep,
+   CHAR_TOP 64→68; heads now read at 300px instead of ~100px flat faces.
+2. **Counter as a real surface** — full-width glossy wood counter (grain +
+   specular highlight) under the bins (y568..756, no unpainted gap under the
+   order board — a black 12px strip found + fixed in the first v4 render);
+   station-row and plate-row counter bands thickened to 22px with grain +
+   shine + shadow so stations sit ON the counter.
+3. **Grill as a box** — stronger ember glow (5 embers, alpha .65), glossy top
+   edge + shaded bottom edge on the red frame, steaks enlarged 62→76px with
+   crosshatch + gloss.
+4. **Dispensers larger (~1.4x)** — front machine 68×110px (was 48×78), 3 in a
+   row receding, glass cups in front, sitting on the counter strip; DING /
+   "no finished plate" texts re-centred left (bx-88 / bx-58) so they never
+   strike through the machines.
+5. **Dark voids killed** — plate tray is now warm walnut (#7a5230→#54371e,
+   gold rim) instead of flat purple-grey; serve pass lightened (#7a3226→
+   #5a2115) with a stronger warm glow.
+6. **Bowls mounded, not tiled** — bowls drawn 1.1x so food fills the tile,
+   tiles re-tinted warm (#f7ead0); containers, not flat icons.
+- Also fixed (found while viewing full-res): the chopper knife was covering
+  the "DY" of slot 2's READY pill — knife now drawn BEFORE the slots, pill
+  made solid (#33302a); READY fully legible in the rush shot.
+- Screenshots re-rendered (final hashes): 1-start.jpg `d7fd8427…`,
+  2-play.jpg `5c747da5…`, 3-rush.jpg `53e01db1…`, 4-serve.jpg `bb120b65…`
+  (all 82–144 KB, under the 256 KiB cap).
+- Re-verified: `node --check` all 6 files OK; **?test=1 self-test 14/14 PASS**;
+  grader-style `MAKEFUN_OUTPUT_DIR=out node main.ts` run twice →
+  **byte-identical** (dossier.json 775,474 B, under 1.5 MiB cap).
+
+## Honest verdict after the v4 pass
+Closer to the 3D style target on every axis the audit named: characters,
+grill, dispensers, plate tray, counter, bowls. Remaining gap vs. the target
+render (honest): the art is still canvas-vector, not painterly 3D — faces
+are simple cartoon (no soft painted shading), the dining room is a band,
+not a full perspective room, and food is gradient vector, not a 3D render.
+A real-time 3D rewrite was NOT attempted (no time to re-verify before the
+11:37 WIB round-1 cutoff). Verdict: a visibly stronger top-40 contender;
+top 10 depends on how the AI judge weighs a complete playable game with a
+warm busy kitchen against painterly/3D rivals. Do not claim top 10 as likely.
 
 ## NOT submitted
 Parent to bundle (this session + parent chain) + submit after Wahyu

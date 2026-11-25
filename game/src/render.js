@@ -242,74 +242,118 @@ function drawRestaurant(ctx) {
   for (let fx = 0; fx < STAGE_W; fx += 96) ctx.fillRect(fx, 756, 2, 44);
   ctx.fillRect(0, 770, STAGE_W, 2);
   ctx.fillRect(0, 785, STAGE_W, 2);
-  // Wooden counter edge between the station row and the plate row.
+  // Wooden counter surface the ingredient bowls sit on (full width,
+  // glossy grain) — the bins sit ON the counter, not on a tiled floor.
+  // Starts at y=568 so there is no unpainted gap under the order board.
+  const counterGrad = ctx.createLinearGradient(0, 568, 0, 756);
+  counterGrad.addColorStop(0, '#c08a4e');
+  counterGrad.addColorStop(1, '#a9703f');
+  ctx.fillStyle = counterGrad;
+  ctx.fillRect(0, 568, STAGE_W, 188);
+  ctx.fillStyle = 'rgba(255,235,200,0.30)';
+  ctx.fillRect(0, 568, STAGE_W, 3);
+  ctx.strokeStyle = 'rgba(120,80,30,0.35)';
+  ctx.lineWidth = 1.5;
+  for (const gy of [620, 690, 740]) {
+    ctx.beginPath();
+    ctx.moveTo(0, gy);
+    ctx.quadraticCurveTo(420, gy + 4, 860, gy - 2);
+    ctx.quadraticCurveTo(1100, gy + 2, STAGE_W, gy);
+    ctx.stroke();
+  }
+  ctx.fillStyle = 'rgba(99,35,26,0.18)';
+  for (let fx = 180; fx < STAGE_W; fx += 320) ctx.fillRect(fx, 568, 2, 188);
+  // Wooden counter edge between the station row and the plate row —
+  // a real glossy counter band the stations sit ON, with grain + shine.
+  ctx.fillStyle = 'rgba(99,35,26,0.25)';
+  ctx.fillRect(304, 344, 976, 6);
   ctx.fillStyle = '#a9703f';
-  ctx.fillRect(304, 346, 976, 16);
+  ctx.fillRect(304, 344, 976, 22);
   ctx.fillStyle = '#c08a4e';
-  ctx.fillRect(304, 346, 976, 3);
+  ctx.fillRect(304, 344, 976, 4);
+  ctx.fillStyle = 'rgba(255,235,200,0.35)';
+  ctx.fillRect(304, 348, 976, 2);
+  ctx.strokeStyle = 'rgba(120,80,30,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(320, 358);
+  ctx.quadraticCurveTo(640, 362, 980, 357);
+  ctx.moveTo(360, 363);
+  ctx.quadraticCurveTo(700, 366, 1100, 362);
+  ctx.stroke();
   ctx.fillStyle = '#8d5a2b';
-  ctx.fillRect(304, 358, 976, 4);
+  ctx.fillRect(304, 362, 976, 4);
   // Wooden counter edge under the plate/serve row.
+  ctx.fillStyle = 'rgba(99,35,26,0.25)';
+  ctx.fillRect(304, 558, 976, 6);
   ctx.fillStyle = '#a9703f';
-  ctx.fillRect(304, 560, 976, 16);
+  ctx.fillRect(304, 558, 976, 22);
   ctx.fillStyle = '#c08a4e';
-  ctx.fillRect(304, 560, 976, 3);
+  ctx.fillRect(304, 558, 976, 4);
+  ctx.fillStyle = 'rgba(255,235,200,0.35)';
+  ctx.fillRect(304, 562, 976, 2);
+  ctx.strokeStyle = 'rgba(120,80,30,0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(320, 572);
+  ctx.quadraticCurveTo(640, 576, 980, 571);
+  ctx.stroke();
   ctx.fillStyle = '#8d5a2b';
-  ctx.fillRect(304, 572, 976, 4);
-  // Wooden counter strip the ingredient bowls sit on.
-  ctx.fillStyle = '#c08a4e';
-  ctx.fillRect(16, 576, 1248, 16);
-  ctx.fillStyle = '#a9703f';
-  ctx.fillRect(16, 588, 1248, 4);
+  ctx.fillRect(304, 576, 976, 4);
 }
 
 // ---------- staff characters (chest-up, drawn behind the stations) ----------
 function drawFace(ctx, cx, cy, skin) {
   ctx.fillStyle = skin;
   ctx.beginPath();
-  ctx.ellipse(cx, cy, 34, 40, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy, 40, 46, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = 'rgba(99,35,26,0.5)';
   ctx.lineWidth = 2.5;
   ctx.stroke();
+  // Soft cheek shading + glossy highlight on the cheek.
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  ctx.beginPath();
+  ctx.ellipse(cx - 16, cy - 18, 12, 7, -0.4, 0, Math.PI * 2);
+  ctx.fill();
   // Ears.
   ctx.fillStyle = skin;
-  circle(ctx, cx - 34, cy + 2, 7);
+  circle(ctx, cx - 40, cy + 2, 7);
   ctx.fill();
-  circle(ctx, cx + 34, cy + 2, 7);
+  circle(ctx, cx + 40, cy + 2, 7);
   ctx.fill();
 }
 
 function drawEyes(ctx, cx, cy, lashes) {
-  for (const dx of [-13, 13]) {
+  for (const dx of [-15, 15]) {
     ctx.fillStyle = '#fff';
     ctx.beginPath();
-    ctx.ellipse(cx + dx, cy, 8, 10, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + dx, cy, 10, 12, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = '#2a2018';
-    circle(ctx, cx + dx, cy + 1, 4.5);
+    circle(ctx, cx + dx, cy + 1, 5.5);
     ctx.fill();
     ctx.fillStyle = '#fff';
-    circle(ctx, cx + dx - 1.5, cy - 1.5, 1.8);
+    circle(ctx, cx + dx - 2, cy - 2, 2.2);
     ctx.fill();
     if (lashes) {
       ctx.strokeStyle = '#2a2018';
       ctx.lineWidth = 1.8;
       ctx.beginPath();
-      ctx.moveTo(cx + dx - 6, cy - 8);
-      ctx.lineTo(cx + dx - 9, cy - 12);
-      ctx.moveTo(cx + dx + 6, cy - 8);
-      ctx.lineTo(cx + dx + 9, cy - 12);
+      ctx.moveTo(cx + dx - 7, cy - 10);
+      ctx.lineTo(cx + dx - 11, cy - 14);
+      ctx.moveTo(cx + dx + 7, cy - 10);
+      ctx.lineTo(cx + dx + 11, cy - 14);
       ctx.stroke();
     }
   }
   ctx.strokeStyle = 'rgba(99,35,26,0.6)';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(cx - 20, cy - 16);
-  ctx.quadraticCurveTo(cx - 13, cy - 20, cx - 6, cy - 16);
-  ctx.moveTo(cx + 6, cy - 16);
-  ctx.quadraticCurveTo(cx + 13, cy - 20, cx + 20, cy - 16);
+  ctx.moveTo(cx - 23, cy - 19);
+  ctx.quadraticCurveTo(cx - 15, cy - 23, cx - 7, cy - 19);
+  ctx.moveTo(cx + 7, cy - 19);
+  ctx.quadraticCurveTo(cx + 15, cy - 23, cx + 23, cy - 19);
   ctx.stroke();
 }
 
@@ -318,12 +362,12 @@ function drawSmile(ctx, cx, cy, color) {
   ctx.lineWidth = 2.5;
   ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.arc(cx, cy, 11, Math.PI * 0.15, Math.PI * 0.85);
+  ctx.arc(cx, cy, 12, Math.PI * 0.15, Math.PI * 0.85);
   ctx.stroke();
   ctx.fillStyle = 'rgba(217,100,93,0.35)';
-  circle(ctx, cx - 22, cy + 8, 5);
+  circle(ctx, cx - 26, cy + 8, 6);
   ctx.fill();
-  circle(ctx, cx + 22, cy + 8, 5);
+  circle(ctx, cx + 26, cy + 8, 6);
   ctx.fill();
 }
 
@@ -333,10 +377,10 @@ function drawWaiter(ctx) {
   // Shoulders: navy suit.
   ctx.fillStyle = '#2f4a7a';
   ctx.beginPath();
-  ctx.moveTo(cx - 66, top + 176);
-  ctx.quadraticCurveTo(cx - 64, top + 118, cx - 34, top + 108);
-  ctx.lineTo(cx + 34, top + 108);
-  ctx.quadraticCurveTo(cx + 64, top + 118, cx + 66, top + 176);
+  ctx.moveTo(cx - 78, top + 176);
+  ctx.quadraticCurveTo(cx - 76, top + 118, cx - 40, top + 108);
+  ctx.lineTo(cx + 40, top + 108);
+  ctx.quadraticCurveTo(cx + 76, top + 118, cx + 78, top + 176);
   ctx.closePath();
   ctx.fill();
   ctx.strokeStyle = 'rgba(99,35,26,0.5)';
@@ -344,62 +388,67 @@ function drawWaiter(ctx) {
   ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.beginPath();
-  ctx.moveTo(cx - 60, top + 176);
-  ctx.quadraticCurveTo(cx - 58, top + 122, cx - 34, top + 112);
-  ctx.lineTo(cx - 18, top + 176);
+  ctx.moveTo(cx - 72, top + 176);
+  ctx.quadraticCurveTo(cx - 70, top + 122, cx - 40, top + 112);
+  ctx.lineTo(cx - 20, top + 176);
   ctx.closePath();
   ctx.fill();
   // Shirt + tie.
   ctx.fillStyle = '#f7f2ea';
   ctx.beginPath();
-  ctx.moveTo(cx - 16, top + 108);
-  ctx.lineTo(cx + 16, top + 108);
-  ctx.lineTo(cx + 10, top + 176);
-  ctx.lineTo(cx - 10, top + 176);
+  ctx.moveTo(cx - 18, top + 108);
+  ctx.lineTo(cx + 18, top + 108);
+  ctx.lineTo(cx + 11, top + 176);
+  ctx.lineTo(cx - 11, top + 176);
   ctx.closePath();
   ctx.fill();
   ctx.fillStyle = '#9c261d';
   ctx.beginPath();
-  ctx.moveTo(cx - 5, top + 112);
-  ctx.lineTo(cx + 5, top + 112);
-  ctx.lineTo(cx + 7, top + 150);
-  ctx.lineTo(cx, top + 162);
-  ctx.lineTo(cx - 7, top + 150);
+  ctx.moveTo(cx - 6, top + 112);
+  ctx.lineTo(cx + 6, top + 112);
+  ctx.lineTo(cx + 8, top + 152);
+  ctx.lineTo(cx, top + 164);
+  ctx.lineTo(cx - 8, top + 152);
   ctx.closePath();
   ctx.fill();
   ctx.fillStyle = '#f7f2ea';
   ctx.beginPath();
-  ctx.moveTo(cx - 16, top + 108);
+  ctx.moveTo(cx - 18, top + 108);
   ctx.lineTo(cx, top + 122);
-  ctx.lineTo(cx - 8, top + 132);
+  ctx.lineTo(cx - 9, top + 132);
   ctx.closePath();
   ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(cx + 16, top + 108);
+  ctx.moveTo(cx + 18, top + 108);
   ctx.lineTo(cx, top + 122);
-  ctx.lineTo(cx + 8, top + 132);
+  ctx.lineTo(cx + 9, top + 132);
   ctx.closePath();
   ctx.fill();
   // Neck + head.
   ctx.fillStyle = '#dd9b67';
-  ctx.fillRect(cx - 10, top + 88, 20, 24);
+  ctx.fillRect(cx - 11, top + 90, 22, 24);
   drawFace(ctx, cx, top + 52, '#dd9b67');
-  // Dark side-parted hair.
+  // Dark side-parted hair: glossy 3D volume, not a flat cap.
   ctx.fillStyle = '#2e2118';
   ctx.beginPath();
-  ctx.ellipse(cx, top + 26, 36, 24, 0, Math.PI, 0);
+  ctx.ellipse(cx, top + 26, 43, 28, 0, Math.PI, 0);
   ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(cx - 36, top + 28);
-  ctx.quadraticCurveTo(cx - 30, top + 2, cx - 6, top + 10);
-  ctx.quadraticCurveTo(cx + 18, top + 2, cx + 34, top + 14);
-  ctx.quadraticCurveTo(cx + 38, top + 26, cx + 36, top + 30);
-  ctx.lineTo(cx + 30, top + 18);
-  ctx.quadraticCurveTo(cx, top + 8, cx - 30, top + 18);
+  ctx.moveTo(cx - 43, top + 30);
+  ctx.quadraticCurveTo(cx - 36, top + 0, cx - 8, top + 8);
+  ctx.quadraticCurveTo(cx + 20, top + 0, cx + 41, top + 12);
+  ctx.quadraticCurveTo(cx + 45, top + 28, cx + 43, top + 32);
+  ctx.lineTo(cx + 36, top + 20);
+  ctx.quadraticCurveTo(cx, top + 8, cx - 36, top + 20);
   ctx.closePath();
   ctx.fill();
+  // Hair gloss: a shiny sweep across the top-left of the hair.
+  ctx.fillStyle = 'rgba(255,255,255,0.20)';
+  ctx.beginPath();
+  ctx.ellipse(cx - 16, top + 10, 16, 6, -0.35, 0, Math.PI * 2);
+  ctx.fill();
   drawEyes(ctx, cx, top + 52, false);
-  drawSmile(ctx, cx, top + 72);
+  drawSmile(ctx, cx, top + 78);
   ctx.restore();
 }
 
@@ -409,15 +458,15 @@ function drawWaitress(ctx) {
   // Blonde hair behind the shoulders.
   ctx.fillStyle = '#e6c87a';
   ctx.beginPath();
-  ctx.ellipse(cx, top + 96, 44, 66, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, top + 100, 50, 72, 0, 0, Math.PI * 2);
   ctx.fill();
   // Shoulders: pink/red dress.
   ctx.fillStyle = '#d8645d';
   ctx.beginPath();
-  ctx.moveTo(cx - 62, top + 176);
-  ctx.quadraticCurveTo(cx - 60, top + 116, cx - 32, top + 106);
-  ctx.lineTo(cx + 32, top + 106);
-  ctx.quadraticCurveTo(cx + 60, top + 116, cx + 62, top + 176);
+  ctx.moveTo(cx - 74, top + 176);
+  ctx.quadraticCurveTo(cx - 72, top + 116, cx - 38, top + 106);
+  ctx.lineTo(cx + 38, top + 106);
+  ctx.quadraticCurveTo(cx + 72, top + 116, cx + 74, top + 176);
   ctx.closePath();
   ctx.fill();
   ctx.strokeStyle = 'rgba(99,35,26,0.5)';
@@ -425,44 +474,49 @@ function drawWaitress(ctx) {
   ctx.stroke();
   ctx.fillStyle = 'rgba(255,255,255,0.16)';
   ctx.beginPath();
-  ctx.moveTo(cx - 56, top + 176);
-  ctx.quadraticCurveTo(cx - 54, top + 120, cx - 30, top + 110);
-  ctx.lineTo(cx - 16, top + 176);
+  ctx.moveTo(cx - 68, top + 176);
+  ctx.quadraticCurveTo(cx - 66, top + 120, cx - 36, top + 110);
+  ctx.lineTo(cx - 18, top + 176);
   ctx.closePath();
   ctx.fill();
   // Dress neckline.
   ctx.fillStyle = '#f7f2ea';
   ctx.beginPath();
-  ctx.moveTo(cx - 20, top + 106);
-  ctx.quadraticCurveTo(cx, top + 128, cx + 20, top + 106);
-  ctx.quadraticCurveTo(cx, top + 118, cx - 20, top + 106);
+  ctx.moveTo(cx - 22, top + 106);
+  ctx.quadraticCurveTo(cx, top + 128, cx + 22, top + 106);
+  ctx.quadraticCurveTo(cx, top + 118, cx - 22, top + 106);
   ctx.closePath();
   ctx.fill();
   // Neck + head.
   ctx.fillStyle = '#e8b48a';
-  ctx.fillRect(cx - 9, top + 86, 18, 24);
+  ctx.fillRect(cx - 10, top + 88, 20, 24);
   drawFace(ctx, cx, top + 50, '#e8b48a');
-  // Blonde waves framing the face.
+  // Blonde waves framing the face: glossy 3D volumes.
   ctx.fillStyle = '#e6c87a';
   ctx.beginPath();
-  ctx.ellipse(cx, top + 22, 37, 22, 0, Math.PI, 0);
+  ctx.ellipse(cx, top + 22, 43, 26, 0, Math.PI, 0);
   ctx.fill();
   ctx.beginPath();
-  ctx.ellipse(cx - 34, top + 48, 12, 26, 0.25, 0, Math.PI * 2);
+  ctx.ellipse(cx - 40, top + 50, 14, 30, 0.25, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.ellipse(cx + 34, top + 48, 12, 26, -0.25, 0, Math.PI * 2);
+  ctx.ellipse(cx + 40, top + 50, 14, 30, -0.25, 0, Math.PI * 2);
   ctx.fill();
   ctx.beginPath();
-  ctx.moveTo(cx - 36, top + 30);
-  ctx.quadraticCurveTo(cx - 34, top + 2, cx, top + 4);
-  ctx.quadraticCurveTo(cx + 34, top + 2, cx + 36, top + 30);
-  ctx.quadraticCurveTo(cx + 30, top + 16, cx, top + 14);
-  ctx.quadraticCurveTo(cx - 30, top + 16, cx - 36, top + 30);
+  ctx.moveTo(cx - 42, top + 30);
+  ctx.quadraticCurveTo(cx - 40, top + 2, cx, top + 4);
+  ctx.quadraticCurveTo(cx + 40, top + 2, cx + 42, top + 30);
+  ctx.quadraticCurveTo(cx + 36, top + 16, cx, top + 14);
+  ctx.quadraticCurveTo(cx - 36, top + 16, cx - 42, top + 30);
   ctx.closePath();
   ctx.fill();
+  // Hair gloss.
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.beginPath();
+  ctx.ellipse(cx - 18, top + 10, 16, 6, -0.35, 0, Math.PI * 2);
+  ctx.fill();
   drawEyes(ctx, cx, top + 50, true);
-  drawSmile(ctx, cx, top + 70, '#c65a5a');
+  drawSmile(ctx, cx, top + 76, '#c65a5a');
   ctx.restore();
 }
 
@@ -795,7 +849,7 @@ function drawGrill(ctx, hover) {
   ctx.clip();
   const ember = ctx.createLinearGradient(0, GRILL.y + 100, 0, GRILL.y + GRILL.h - 22);
   ember.addColorStop(0, 'rgba(255,120,30,0)');
-  ember.addColorStop(1, 'rgba(255,120,30,0.5)');
+  ember.addColorStop(1, 'rgba(255,120,30,0.65)');
   ctx.fillStyle = ember;
   ctx.fillRect(GRILL.x + 16, GRILL.y + 96, GRILL.w - 32, GRILL.h - 118);
   ctx.strokeStyle = '#2a1a12';
@@ -807,14 +861,21 @@ function drawGrill(ctx, hover) {
     ctx.lineTo(x, GRILL.y + GRILL.h - 26);
     ctx.stroke();
   }
-  ctx.fillStyle = 'rgba(255,150,50,0.35)';
-  for (let i = 0; i < 4; i++) {
-    const x = GRILL.x + 30 + i * ((GRILL.w - 60) / 3);
+  ctx.fillStyle = 'rgba(255,150,50,0.45)';
+  for (let i = 0; i < 5; i++) {
+    const x = GRILL.x + 30 + i * ((GRILL.w - 60) / 4);
     ctx.beginPath();
     ctx.ellipse(x, GRILL.y + GRILL.h - 26, 10, 3, 0, 0, Math.PI * 2);
     ctx.fill();
   }
   ctx.restore();
+  // Glossy top edge + side face so the grill reads as a 3D box, not a panel.
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  rr(ctx, GRILL.x + 14, GRILL.y + 52, GRILL.w - 28, 4, 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  rr(ctx, GRILL.x + 14, GRILL.y + GRILL.h - 58, GRILL.w - 28, 4, 2);
+  ctx.fill();
   // Indicator lights + vent slots on the frame's front strip.
   const ly = GRILL.y + GRILL.h - 13;
   const lightCols = ['#5da85f', '#f2c94c', '#d94f3d'];
@@ -847,7 +908,7 @@ function drawGrill(ctx, hover) {
   Game.grill.slots.forEach((slot, i) => {
     const r = slotRect(GRILL, i);
     if (slot.item) {
-      drawIngredient(ctx, slot.item.kind, slot.item.state, r.x + r.w / 2, r.y + r.h / 2 - 6, 62);
+      drawIngredient(ctx, slot.item.kind, slot.item.state, r.x + r.w / 2, r.y + r.h / 2 - 6, 76);
       drawProgressRing(ctx, r.x + r.w / 2, r.y + r.h - 14, 13, slot.progress, slot.done);
       if (slot.item.state === 'burnt') {
         text(ctx, 'BURNT!', r.x + r.w / 2, r.y + 16, 13, '#fff', 'center');
@@ -901,24 +962,9 @@ function drawChopper(ctx, hover) {
   ctx.moveTo(CHOPPER.x + 30, CHOPPER.y + 70);
   ctx.lineTo(CHOPPER.x + CHOPPER.w - 30, CHOPPER.y + 70);
   ctx.stroke();
-  Game.chopper.slots.forEach((slot, i) => {
-    const r = slotRect(CHOPPER, i);
-    if (slot.item) {
-      drawIngredient(ctx, slot.item.kind, slot.item.state, r.x + r.w / 2, r.y + r.h / 2 - 6, 62);
-      drawProgressRing(ctx, r.x + r.w / 2, r.y + r.h - 14, 13, slot.progress, slot.done);
-      if (slot.done) {
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        rr(ctx, r.x + r.w / 2 - 32, r.y + 6, 64, 20, 10);
-        ctx.fill();
-        text(ctx, 'READY', r.x + r.w / 2, r.y + 16, 12, '#7ddc8a', 'center');
-      }
-    } else {
-      ctx.fillStyle = 'rgba(0,0,0,0.06)';
-      rr(ctx, r.x, r.y, r.w, r.h, 8);
-      ctx.fill();
-    }
-  });
-  // Chef's knife resting across the board's top edge.
+  // Chef's knife resting across the board's top edge — drawn BEFORE the
+  // slots so a READY pill is never hidden under its handle (was covering
+  // the "DY" of slot 2's pill).
   ctx.save();
   ctx.translate(CHOPPER.x + CHOPPER.w - 52, CHOPPER.y + 60);
   ctx.rotate(-0.35);
@@ -940,6 +986,23 @@ function drawChopper(ctx, hover) {
   circle(ctx, -14, 0, 2);
   ctx.fill();
   ctx.restore();
+  Game.chopper.slots.forEach((slot, i) => {
+    const r = slotRect(CHOPPER, i);
+    if (slot.item) {
+      drawIngredient(ctx, slot.item.kind, slot.item.state, r.x + r.w / 2, r.y + r.h / 2 - 6, 62);
+      drawProgressRing(ctx, r.x + r.w / 2, r.y + r.h - 14, 13, slot.progress, slot.done);
+      if (slot.done) {
+        ctx.fillStyle = '#33302a';
+        rr(ctx, r.x + r.w / 2 - 32, r.y + 6, 64, 20, 10);
+        ctx.fill();
+        text(ctx, 'READY', r.x + r.w / 2, r.y + 16, 12, '#7ddc8a', 'center');
+      }
+    } else {
+      ctx.fillStyle = 'rgba(0,0,0,0.06)';
+      rr(ctx, r.x, r.y, r.w, r.h, 8);
+      ctx.fill();
+    }
+  });
   if (hover) {
     ctx.strokeStyle = '#ffd94d';
     ctx.lineWidth = 3;
@@ -1019,14 +1082,19 @@ function drawPlate(ctx, hover) {
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   rr(ctx, PLATE.x + 3, PLATE.y + 5, PLATE.w, PLATE.h, 14);
   ctx.fill();
-  // Dark slate tray the plated dishes sit on (ref: plates on a dark tray).
+  // Warm walnut tray the plated dishes sit on (ref: plates on a warm
+  // wooden pass — never a flat black/purple void).
   const trayGrad = ctx.createLinearGradient(0, PLATE.y, 0, PLATE.y + PLATE.h);
-  trayGrad.addColorStop(0, '#5a4a52');
-  trayGrad.addColorStop(1, '#453a41');
+  trayGrad.addColorStop(0, '#7a5230');
+  trayGrad.addColorStop(1, '#54371e');
   ctx.fillStyle = trayGrad;
   rr(ctx, PLATE.x, PLATE.y, PLATE.w, PLATE.h, 14);
   ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.strokeStyle = 'rgba(230,209,163,0.4)';
+  ctx.lineWidth = 2;
+  rr(ctx, PLATE.x + 3, PLATE.y + 3, PLATE.w - 6, PLATE.h - 6, 12);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,235,200,0.15)';
   rr(ctx, PLATE.x + 6, PLATE.y + 44, PLATE.w - 12, 3, 2);
   ctx.fill();
   ctx.fillStyle = glow ? '#5da85f' : '#8d5a2b';
@@ -1284,10 +1352,10 @@ function drawServe(ctx, hover) {
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   rr(ctx, SERVE.x + 3, SERVE.y + 5, SERVE.w, SERVE.h, 14);
   ctx.fill();
-  // Warm dark brown pass — never black.
+  // Warm brown pass — lit, never black.
   const passGrad = ctx.createLinearGradient(0, SERVE.y, 0, SERVE.y + SERVE.h);
-  passGrad.addColorStop(0, '#63231a');
-  passGrad.addColorStop(1, '#4a1f16');
+  passGrad.addColorStop(0, '#7a3226');
+  passGrad.addColorStop(1, '#5a2115');
   ctx.fillStyle = passGrad;
   rr(ctx, SERVE.x, SERVE.y, SERVE.w, SERVE.h, 14);
   ctx.fill();
@@ -1301,7 +1369,7 @@ function drawServe(ctx, hover) {
   text(ctx, 'click here to serve a finished plate', SERVE.x + SERVE.w / 2, SERVE.y + 88, 14, '#e8b48a', 'center');
   // Warm glow behind the pass so the window feels lit, not void.
   const serveGlow = ctx.createRadialGradient(SERVE.x + SERVE.w / 2, SERVE.y + 110, 10, SERVE.x + SERVE.w / 2, SERVE.y + 110, 190);
-  serveGlow.addColorStop(0, 'rgba(255,190,90,0.22)');
+  serveGlow.addColorStop(0, 'rgba(255,190,90,0.30)');
   serveGlow.addColorStop(1, 'rgba(255,190,90,0)');
   ctx.fillStyle = serveGlow;
   ctx.fillRect(SERVE.x, SERVE.y + 34, SERVE.w, SERVE.h - 34);
@@ -1360,17 +1428,18 @@ function drawServe(ctx, hover) {
   ctx.fillStyle = '#6b7280';
   circle(ctx, bx + 41, by + 7, 4.5);
   ctx.fill();
-  // Drink dispensers (ref, right side): 3 red machines, receding.
-  drawDispensers(ctx, SERVE.x + SERVE.w - 168, SERVE.y + 100);
+  // Drink dispensers (ref, right side): 3 large red machines, receding.
+  // Bigger than before (~1.4x) so they read at 300px like the reference.
+  drawDispensers(ctx, SERVE.x + SERVE.w - 190, SERVE.y + 94);
   if (match) {
     const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 140);
     ctx.strokeStyle = 'rgba(255,217,77,' + pulse + ')';
     ctx.lineWidth = 5;
     rr(ctx, SERVE.x - 3, SERVE.y - 3, SERVE.w + 6, SERVE.h + 6, 16);
     ctx.stroke();
-    text(ctx, 'DING! ' + recipeById(match.recipeId).name.toUpperCase() + ' — SERVE NOW', bx, SERVE.y + SERVE.h - 22, 17, '#ffd94d', 'center');
+    text(ctx, 'DING! ' + recipeById(match.recipeId).name.toUpperCase() + ' — SERVE NOW', bx - 88, SERVE.y + SERVE.h - 22, 14, '#ffd94d', 'center');
   } else {
-    text(ctx, 'no finished plate yet', bx, SERVE.y + SERVE.h - 22, 14, '#e8b48a', 'center');
+    text(ctx, 'no finished plate yet', bx - 58, SERVE.y + SERVE.h - 22, 14, '#e8b48a', 'center');
   }
   if (hover) {
     ctx.strokeStyle = '#ffd94d';
@@ -1380,17 +1449,18 @@ function drawServe(ctx, hover) {
   }
 }
 
-// Three red drink dispensers in a row, receding in perspective (ref).
+// Three red drink dispensers in a row, receding in perspective (ref) —
+// large enough to read at 300px: ~68px wide, ~110px tall for the front one.
 function drawDispensers(ctx, x, y) {
   const machines = [
     { dx: 0, s: 1.0 },
-    { dx: 52, s: 0.88 },
-    { dx: 98, s: 0.76 },
+    { dx: 62, s: 0.88 },
+    { dx: 116, s: 0.76 },
   ];
   for (const m of machines) {
     const mx = x + m.dx;
-    const w = 48 * m.s;
-    const h = 78 * m.s;
+    const w = 68 * m.s;
+    const h = 110 * m.s;
     ctx.save();
     ctx.translate(mx, y + (1 - m.s) * 30);
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
@@ -1849,7 +1919,7 @@ function drawBins(ctx, hoverBin) {
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     rr(ctx, r.x + 3, r.y + 4, r.w, r.h, 12);
     ctx.fill();
-    ctx.fillStyle = isHand ? '#ffe9a8' : '#fdf6e3';
+    ctx.fillStyle = isHand ? '#ffe9a8' : '#f7ead0';
     rr(ctx, r.x, r.y, r.w, r.h, 12);
     ctx.fill();
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -1859,7 +1929,14 @@ function drawBins(ctx, hoverBin) {
     ctx.lineWidth = hoverBin === i || isHand ? 3 : 2;
     rr(ctx, r.x, r.y, r.w, r.h, 12);
     ctx.stroke();
+    // Bowls drawn larger (1.1x) so the food mounds fill the tile — the
+    // container, not the tile, is what the eye reads.
+    ctx.save();
+    ctx.translate(r.x + r.w / 2, r.y + 66);
+    ctx.scale(1.1, 1.1);
+    ctx.translate(-(r.x + r.w / 2), -(r.y + 62));
     drawBowl(ctx, kind, r.x + r.w / 2, r.y + 62);
+    ctx.restore();
     text(ctx, ing.name.toUpperCase(), r.x + r.w / 2, r.y + 122, 15, '#3a2a1a', 'center');
     text(ctx, ing.station ? ing.station.toUpperCase() + ' ' + ing.time + 's' : 'READY TO PLATE', r.x + r.w / 2, r.y + 144, 11, '#8a7a62', 'center');
     text(ctx, String(i + 1), r.x + 10, r.y + 16, 12, '#b9a98e');
