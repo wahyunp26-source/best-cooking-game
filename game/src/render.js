@@ -215,6 +215,42 @@ backdropImg.onload = () => { backdropReady = true; window.__backdropReady = true
 backdropImg.onerror = () => { window.__backdropError = true; };
 backdropImg.src = 'assets/backdrop.jpg';
 
+// --- 3D station sprites -------------------------------------------------
+// Photo crops of the same 3D diner scene (game/assets/spr-*.jpg). Each crop
+// is the real 3D station; the vector shells below stay as fallback if a
+// sprite fails to load, so the game never breaks on a bad image.
+const SPRITE_FILES = {
+  grill: 'assets/spr-grill.jpg',
+  chopper: 'assets/spr-chopper.jpg',
+  pots: 'assets/spr-pots.jpg',
+  plate: 'assets/spr-plate.jpg',
+  serve: 'assets/spr-serve.jpg',
+  bins: 'assets/spr-bins.jpg',
+};
+const sprites = {};
+let spritesSettled = 0;
+window.__spritesReady = false;
+for (const [key, file] of Object.entries(SPRITE_FILES)) {
+  const img = new Image();
+  sprites[key] = { img, ready: false };
+  img.onload = () => { sprites[key].ready = true; if (++spritesSettled === Object.keys(SPRITE_FILES).length) window.__spritesReady = true; };
+  img.onerror = () => { if (++spritesSettled === Object.keys(SPRITE_FILES).length) window.__spritesReady = true; };
+  img.src = file;
+}
+// Food anchors measured from the 3D scene (photo slot centres). The layout
+// rects never move - only the food's draw position is photo-aligned;
+// clicks still use the whole station rect.
+function grillSlotRect(i) {
+  if (!sprites.grill.ready) return slotRect(GRILL, i);
+  const cx = i === 0 ? 399 : 503;
+  return { x: cx - 58, y: 202, w: 116, h: 84 };
+}
+function potSlotRect(i) {
+  if (!sprites.pots.ready) return slotRect(POT, i);
+  const cx = i === 0 ? 950 : 1028;
+  return { x: cx - 58, y: 213, w: 116, h: 84 };
+}
+
 function drawRestaurant(ctx) {
   // Wall: warm cream gradient.
   const wall = ctx.createLinearGradient(0, 64, 0, 560);
@@ -844,6 +880,10 @@ function drawStationBase(ctx, rect, label, sub, accent) {
 }
 
 function drawGrill(ctx, hover) {
+  const photo = sprites.grill.ready;
+  if (photo) {
+    ctx.drawImage(sprites.grill.img, GRILL.x, GRILL.y, GRILL.w, GRILL.h);
+  } else {
   drawStationBase(ctx, GRILL, 'GRILL', 'patty · 4s', '#c65a3c');
   // Red machine frame + silver rim + dark bed, like the ref grill.
   ctx.fillStyle = '#d8645d';
@@ -921,17 +961,25 @@ function drawGrill(ctx, hover) {
     ctx.fillRect(GRILL.x + 16, GRILL.y + 56, GRILL.w - 32, GRILL.h - 78);
     ctx.restore();
   }
+  }
   Game.grill.slots.forEach((slot, i) => {
-    const r = slotRect(GRILL, i);
+    const r = grillSlotRect(i);
     if (slot.item) {
       drawIngredient(ctx, slot.item.kind, slot.item.state, r.x + r.w / 2, r.y + r.h / 2 - 6, 76);
       drawProgressRing(ctx, r.x + r.w / 2, r.y + r.h - 14, 13, slot.progress, slot.done);
-      if (slot.item.state === 'burnt') {
-        text(ctx, 'BURNT!', r.x + r.w / 2, r.y + 16, 13, '#fff', 'center');
-      } else if (slot.done) {
-        text(ctx, 'READY', r.x + r.w / 2, r.y + 16, 12, '#7ddc8a', 'center');
+      if (slot.item.state === 'burnt' || slot.done) {
+        const label = slot.item.state === 'burnt' ? 'BURNT!' : 'READY';
+        const col = slot.item.state === 'burnt' ? '#fff' : '#7ddc8a';
+        const size = slot.item.state === 'burnt' ? 13 : 12;
+        if (photo) {
+          ctx.fillStyle = 'rgba(42,26,18,0.85)';
+          rr(ctx, r.x + r.w / 2 - 32, r.y + r.h + 6, 64, 20, 10); ctx.fill();
+          text(ctx, label, r.x + r.w / 2, r.y + r.h + 16, size, col, 'center');
+        } else {
+          text(ctx, label, r.x + r.w / 2, r.y + 16, size, col, 'center');
+        }
       }
-    } else {
+    } else if (!photo) {
       // Empty grate slot: dark slot with a faint ember line at its base.
       ctx.fillStyle = 'rgba(0,0,0,0.3)';
       rr(ctx, r.x, r.y, r.w, r.h, 8);
@@ -950,6 +998,10 @@ function drawGrill(ctx, hover) {
 }
 
 function drawChopper(ctx, hover) {
+  const photo = sprites.chopper.ready;
+  if (photo) {
+    ctx.drawImage(sprites.chopper.img, CHOPPER.x, CHOPPER.y, CHOPPER.w, CHOPPER.h);
+  } else {
   drawStationBase(ctx, CHOPPER, 'CHOPPING BOARD', 'veg · 2s', '#7a9e4b');
   ctx.fillStyle = '#d9b078';
   rr(ctx, CHOPPER.x + 14, CHOPPER.y + 54, CHOPPER.w - 28, CHOPPER.h - 68, 10);
@@ -1002,6 +1054,7 @@ function drawChopper(ctx, hover) {
   circle(ctx, -14, 0, 2);
   ctx.fill();
   ctx.restore();
+  }
   Game.chopper.slots.forEach((slot, i) => {
     const r = slotRect(CHOPPER, i);
     if (slot.item) {
@@ -1013,7 +1066,7 @@ function drawChopper(ctx, hover) {
         ctx.fill();
         text(ctx, 'READY', r.x + r.w / 2, r.y + 16, 12, '#7ddc8a', 'center');
       }
-    } else {
+    } else if (!photo) {
       ctx.fillStyle = 'rgba(0,0,0,0.06)';
       rr(ctx, r.x, r.y, r.w, r.h, 8);
       ctx.fill();
@@ -1028,9 +1081,14 @@ function drawChopper(ctx, hover) {
 }
 
 function drawPot(ctx, hover) {
-  drawStationBase(ctx, POT, 'PASTA POT', 'pasta · 5s', '#4a7fb5');
+  if (sprites.pots.ready) {
+    ctx.drawImage(sprites.pots.img, POT.x, POT.y, POT.w, POT.h);
+  } else {
+    drawStationBase(ctx, POT, 'PASTA POT', 'pasta · 5s', '#4a7fb5');
+  }
   Game.pot.slots.forEach((slot, i) => {
-    const r = slotRect(POT, i);
+    const r = potSlotRect(i);
+    if (!sprites.pots.ready) {
     // Steel pot: gradient body, side handles, bright rim.
     const steel = ctx.createLinearGradient(r.x, r.y, r.x, r.y + r.h);
     steel.addColorStop(0, '#aeb8c2');
@@ -1056,6 +1114,7 @@ function drawPot(ctx, hover) {
     ctx.beginPath();
     ctx.ellipse(r.x + r.w / 2 - 12, r.y + 24, 14, 3, 0, 0, Math.PI * 2);
     ctx.fill();
+    }
     if (slot.item) {
       if (!slot.done) {
         // Bubbles + rising steam wisps while boiling.
@@ -1078,7 +1137,15 @@ function drawPot(ctx, hover) {
       }
       drawIngredient(ctx, slot.item.kind, slot.item.state, r.x + r.w / 2, r.y + r.h / 2 + 4, 58);
       drawProgressRing(ctx, r.x + r.w / 2, r.y + r.h - 14, 13, slot.progress, slot.done);
-      if (slot.done) text(ctx, 'READY', r.x + r.w / 2, r.y + 16, 12, '#fff', 'center');
+      if (slot.done) {
+        if (sprites.pots.ready) {
+          ctx.fillStyle = 'rgba(42,26,18,0.85)';
+          rr(ctx, r.x + r.w / 2 - 32, r.y + r.h + 15, 64, 20, 10); ctx.fill();
+          text(ctx, 'READY', r.x + r.w / 2, r.y + r.h + 25, 12, '#7ddc8a', 'center');
+        } else {
+          text(ctx, 'READY', r.x + r.w / 2, r.y + 16, 12, '#fff', 'center');
+        }
+      }
     }
   });
   if (hover) {
@@ -1095,6 +1162,11 @@ const PLATE_STACK = ['bun', 'pasta', 'patty', 'lettuce', 'tomato', 'cheese', 'sa
 function drawPlate(ctx, hover) {
   const match = matchingOrder();
   const glow = match || Game.plateFlash > 0;
+  const cx = PLATE.x + PLATE.w / 2;
+  const cy = PLATE.y + 118;
+  if (sprites.plate.ready) {
+    ctx.drawImage(sprites.plate.img, PLATE.x, PLATE.y, PLATE.w, PLATE.h);
+  } else {
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   rr(ctx, PLATE.x + 3, PLATE.y + 5, PLATE.w, PLATE.h, 14);
   ctx.fill();
@@ -1119,8 +1191,6 @@ function drawPlate(ctx, hover) {
   ctx.fillRect(PLATE.x, PLATE.y + 26, PLATE.w, 14);
   text(ctx, 'PLATE — build the dish here', PLATE.x + 16, PLATE.y + 21, 17, '#fff');
   // The plate itself.
-  const cx = PLATE.x + PLATE.w / 2;
-  const cy = PLATE.y + 118;
   ctx.fillStyle = '#e8e2d4';
   ctx.beginPath();
   ctx.ellipse(cx, cy + 8, 128, 34, 0, 0, Math.PI * 2);
@@ -1134,6 +1204,7 @@ function drawPlate(ctx, hover) {
   ctx.beginPath();
   ctx.ellipse(cx, cy, 100, 24, 0, 0, Math.PI * 2);
   ctx.stroke();
+  }
   if (Game.plate.length === 0) {
     text(ctx, 'empty plate — click ingredients,', cx, cy - 6, 15, '#b9a98e', 'center');
     text(ctx, 'then click the plate to stack', cx, cy + 16, 15, '#b9a98e', 'center');
@@ -1365,6 +1436,10 @@ function drawPlateStack(ctx, plate, cx, cy) {
 
 function drawServe(ctx, hover) {
   const match = matchingOrder();
+  const shelfY = SERVE.y + SERVE.h - 58;
+  if (sprites.serve.ready) {
+    ctx.drawImage(sprites.serve.img, SERVE.x, SERVE.y, SERVE.w, SERVE.h);
+  } else {
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   rr(ctx, SERVE.x + 3, SERVE.y + 5, SERVE.w, SERVE.h, 14);
   ctx.fill();
@@ -1416,13 +1491,13 @@ function drawServe(ctx, hover) {
     ctx.fill();
   }
   // Pass shelf (wood) with a stack of clean plates on the left.
-  const shelfY = SERVE.y + SERVE.h - 58;
   ctx.fillStyle = '#a9703f';
   ctx.fillRect(SERVE.x + 14, shelfY, SERVE.w - 28, 12);
   ctx.fillStyle = '#c08a4e';
   ctx.fillRect(SERVE.x + 14, shelfY, SERVE.w - 28, 3);
   ctx.fillStyle = '#8d5a2b';
   ctx.fillRect(SERVE.x + 14, shelfY + 10, SERVE.w - 28, 2);
+  }
   for (let i = 0; i < 3; i++) {
     ctx.fillStyle = i === 2 ? '#ffffff' : '#e8e2d4';
     ctx.beginPath();
@@ -1436,10 +1511,17 @@ function drawServe(ctx, hover) {
   ctx.beginPath();
   ctx.ellipse(bx, by + 16, 34, 6, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = match ? '#ffd94d' : '#8a97a3';
+  // Brass service bell (gold when a plate is ready to serve) — grey read
+  // as a blob on the bright 3D tray, brass reads as a bell.
+  ctx.fillStyle = match ? '#ffd94d' : '#d9a441';
   ctx.beginPath();
   ctx.arc(bx, by, 30, Math.PI, 0);
   ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.beginPath();
+  ctx.ellipse(bx - 11, by - 13, 9, 4.5, -0.5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = match ? '#ffd94d' : '#d9a441';
   ctx.fillRect(bx - 36, by - 4, 72, 9);
   ctx.fillStyle = '#6b7280';
   circle(ctx, bx + 41, by + 7, 4.5);
@@ -1453,6 +1535,10 @@ function drawServe(ctx, hover) {
     ctx.ellipse(SERVE.x + SERVE.w - 62, shelfY - 2 - i * 5, 26, 6, 0, 0, Math.PI * 2);
     ctx.fill();
   }
+  if (sprites.serve.ready) {
+    ctx.fillStyle = 'rgba(42,26,18,0.85)';
+    rr(ctx, bx - 200, SERVE.y + SERVE.h - 32, 400, 26, 13); ctx.fill();
+  }
   if (match) {
     const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 140);
     ctx.strokeStyle = 'rgba(255,217,77,' + pulse + ')';
@@ -1461,7 +1547,7 @@ function drawServe(ctx, hover) {
     ctx.stroke();
     text(ctx, 'DING! ' + recipeById(match.recipeId).name.toUpperCase() + ' — SERVE NOW', bx, SERVE.y + SERVE.h - 22, 14, '#ffd94d', 'center');
   } else {
-    text(ctx, 'no finished plate yet', bx, SERVE.y + SERVE.h - 22, 14, '#e8b48a', 'center');
+    text(ctx, 'no finished plate yet', bx, SERVE.y + SERVE.h - 22, 14, sprites.serve.ready ? '#e8dcc8' : '#e8b48a', 'center');
   }
   if (hover) {
     ctx.strokeStyle = '#ffd94d';
@@ -1622,8 +1708,8 @@ function drawMiniDish(ctx, recipe, cx, cy) {
 
 function drawOrders(ctx) {
   ctx.fillStyle = '#3a2a1a';
-  text(ctx, 'ORDER BOARD', ORDER_BOARD.x + 4, ORDER_BOARD.y + 8, 20, '#3a2a1a');
-  text(ctx, Game.orders.length + '/' + MAX_ORDERS + ' tickets', ORDER_BOARD.x + ORDER_BOARD.w - 4, ORDER_BOARD.y + 10, 13, '#8a7a62', 'right');
+  text(ctx, 'ORDER BOARD', ORDER_BOARD.x + 4, ORDER_BOARD.y + 8, 20, '#fdf6e3');
+  text(ctx, Game.orders.length + '/' + MAX_ORDERS + ' tickets', ORDER_BOARD.x + ORDER_BOARD.w - 4, ORDER_BOARD.y + 10, 13, '#e8b48a', 'right');
   Game.orders.forEach((order, i) => {
     const recipe = recipeById(order.recipeId);
     const y = TICKET_TOP + i * (TICKET_H + TICKET_GAP);
@@ -1640,6 +1726,10 @@ function drawOrders(ctx) {
     ctx.lineWidth = 2;
     rr(ctx, x, y, TICKET_W, TICKET_H, 12);
     ctx.stroke();
+    // 3D card edges: bottom + right shadow.
+    ctx.fillStyle = 'rgba(0,0,0,0.12)';
+    ctx.fillRect(x + 6, y + TICKET_H - 4, TICKET_W - 12, 3);
+    ctx.fillRect(x + TICKET_W - 4, y + 6, 3, TICKET_H - 12);
     ctx.fillStyle = urgent ? '#d94f3d' : '#8d5a2b';
     rr(ctx, x, y, TICKET_W, 34, 12);
     ctx.fill();
@@ -1941,33 +2031,53 @@ function drawBins(ctx, hoverBin) {
   rr(ctx, BIN_ROW.x, BIN_ROW.y - 24, labelW + 20, 24, 12);
   ctx.fill();
   text(ctx, label, BIN_ROW.x + 10, BIN_ROW.y - 8, 15, '#3a2a1a');
+  // photo strip of the 7 real 3D ingredient containers, affine-aligned so
+  // each container lands on its tile (least-squares fit, max error ~22px)
+  if (sprites.bins.ready) ctx.drawImage(sprites.bins.img, -6, BIN_ROW.y, 1077, BIN_ROW.h);
   BIN_ORDER.forEach((kind, i) => {
     const r = binRect(i);
     const ing = INGREDIENTS[kind];
     const isHand = Game.hand && Game.hand.kind === kind;
-    ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    rr(ctx, r.x + 3, r.y + 4, r.w, r.h, 12);
-    ctx.fill();
-    ctx.fillStyle = isHand ? '#ffe9a8' : '#f7ead0';
-    rr(ctx, r.x, r.y, r.w, r.h, 12);
-    ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    rr(ctx, r.x + 4, r.y + 3, r.w - 8, 5, 2);
-    ctx.fill();
-    ctx.strokeStyle = hoverBin === i || isHand ? '#ffd94d' : 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = hoverBin === i || isHand ? 3 : 2;
-    rr(ctx, r.x, r.y, r.w, r.h, 12);
-    ctx.stroke();
-    // Bowls drawn larger (1.1x) so the food mounds fill the tile — the
-    // container, not the tile, is what the eye reads.
-    ctx.save();
-    ctx.translate(r.x + r.w / 2, r.y + 66);
-    ctx.scale(1.1, 1.1);
-    ctx.translate(-(r.x + r.w / 2), -(r.y + 62));
-    drawBowl(ctx, kind, r.x + r.w / 2, r.y + 62);
-    ctx.restore();
+    if (sprites.bins.ready) {
+      // photo bowl shows through: only a frame + a paper label pill
+      if (isHand || hoverBin === i) {
+        ctx.fillStyle = 'rgba(255,217,77,0.22)';
+        rr(ctx, r.x, r.y, r.w, r.h, 12); ctx.fill();
+      }
+      ctx.strokeStyle = hoverBin === i || isHand ? '#ffd94d' : 'rgba(0,0,0,0.18)';
+      ctx.lineWidth = hoverBin === i || isHand ? 3 : 2;
+      rr(ctx, r.x, r.y, r.w, r.h, 12); ctx.stroke();
+      ctx.fillStyle = 'rgba(251,241,216,0.94)';
+      rr(ctx, r.x + 8, r.y + 112, r.w - 16, 44, 8); ctx.fill();
+    } else {
+      ctx.fillStyle = 'rgba(0,0,0,0.15)';
+      rr(ctx, r.x + 3, r.y + 4, r.w, r.h, 12);
+      ctx.fill();
+      ctx.fillStyle = isHand ? '#ffe9a8' : '#f7ead0';
+      rr(ctx, r.x, r.y, r.w, r.h, 12);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      rr(ctx, r.x + 4, r.y + 3, r.w - 8, 5, 2);
+      ctx.fill();
+      ctx.strokeStyle = hoverBin === i || isHand ? '#ffd94d' : 'rgba(0,0,0,0.12)';
+      ctx.lineWidth = hoverBin === i || isHand ? 3 : 2;
+      rr(ctx, r.x, r.y, r.w, r.h, 12);
+      ctx.stroke();
+      // Bowls drawn larger (1.1x) so the food mounds fill the tile — the
+      // container, not the tile, is what the eye reads.
+      ctx.save();
+      ctx.translate(r.x + r.w / 2, r.y + 66);
+      ctx.scale(1.1, 1.1);
+      ctx.translate(-(r.x + r.w / 2), -(r.y + 62));
+      drawBowl(ctx, kind, r.x + r.w / 2, r.y + 62);
+      ctx.restore();
+    }
     text(ctx, ing.name.toUpperCase(), r.x + r.w / 2, r.y + 122, 15, '#3a2a1a', 'center');
     text(ctx, ing.station ? ing.station.toUpperCase() + ' ' + ing.time + 's' : 'READY TO PLATE', r.x + r.w / 2, r.y + 144, 11, '#8a7a62', 'center');
+    if (sprites.bins.ready) {
+      ctx.fillStyle = 'rgba(251,241,216,0.94)';
+      ctx.beginPath(); ctx.arc(r.x + 16, r.y + 16, 10, 0, Math.PI * 2); ctx.fill();
+    }
     text(ctx, String(i + 1), r.x + 10, r.y + 16, 12, '#b9a98e');
   });
   // Trash.
@@ -2182,12 +2292,21 @@ function drawGame(ctx, mouse, hover) {
     drawWaitress(ctx);
   }
   drawCounterBands(ctx);
-  // Order board panel.
-  ctx.fillStyle = 'rgba(0,0,0,0.10)';
+  // Order board panel: 3D wood - drop shadow + walnut gradient + top
+  // light + bottom edge (was flat cream).
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  rr(ctx, 10, 70, 288, 500, 14);
+  ctx.fill();
+  const wood = ctx.createLinearGradient(8, 68, 8, 568);
+  wood.addColorStop(0, '#a9703f'); wood.addColorStop(1, '#8a5a2b');
+  ctx.fillStyle = wood;
   rr(ctx, 8, 68, 288, 500, 14);
   ctx.fill();
-  ctx.fillStyle = '#fbf1d8';
-  rr(ctx, 8, 68, 288, 500, 14);
+  ctx.fillStyle = 'rgba(255,255,255,0.10)';
+  rr(ctx, 8, 68, 288, 8, 7);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,0.20)';
+  rr(ctx, 8, 560, 288, 8, 7);
   ctx.fill();
 
   drawOrders(ctx);
