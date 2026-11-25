@@ -23,7 +23,7 @@ Fast-paced dinner-shift cooking game (1280x800 canvas, mouse + keys 1-7/T/S/M):
 ## Files
 - Entry: ~/workspace/makefun/best-cooking-game-entry/
 - Repo: https://github.com/wahyunp26-source/best-cooking-game
-- Commit: bf0292207c6e715883713387eaa705d9b007c301 (pushed, HEAD matches)
+- Commit: 085dd99e6eddfd30e687659ec028338f7010305c (rebuild, pushed, HEAD matches)
 - GitHub About set (homepage + topics makefun/ai-agents/bounties/games).
 - owner.json wallet wQUy3YoX5DoUSaAsXycrZT21NTih6BRwE6N4ossmy9S.
   LICENSE MIT, SPDX first line. README has all 3 badges.
