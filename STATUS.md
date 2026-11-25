@@ -229,3 +229,38 @@ a single-screen time-management loop with no character/movement, which
 is less spectacular than a 3D or platformer-style cooking game.
 Verdict: a solid top-40 (final-heat) contender; top 10 depends on how
 many entries are more polished visually. Do not claim top 10 as likely.
+
+## 3-defect fix (25 Nov ~11:30 WIB, commit b3b6063) — parent: "perbaiki dulu"
+Parent viewed 2-play.jpg (0a4e5ff) and named exactly 3 defects; fixed exactly
+those 3 in render.js only (51 insertions, 9 deletions), re-rendered all 4
+screenshots, NOT submitted (quota 0/10; round-1 cutoff 11:37 WIB).
+1. Hard photo-tile edges cutting through staff: new `drawPhotoPanel` helper —
+   rounded corners (r=14) + drop shadow + thin warm border — applied to the
+   grill/chopper/pots/plate/serve sprites (bins strip untouched, already
+   framed per-tile). Clipping never moves the image, so photo-aligned food
+   anchors stay valid. Tiles now read as framed panels, not pasted rectangles.
+2. Plate text clipped: the "keep stacking — check the tickets" hint (and the
+   "READY TO SERVE!" match line, plus the empty-plate hint) now sits on a
+   dark pill (rgba(42,26,18,0.85), 350x26) — fully legible over the busy
+   plate photo. Root cause: beige 14px text drawn straight onto the photo's
+   bright bowls, no backing.
+3. SERVICE WINDOW label missing: the title + subtitle only existed in the
+   vector-fallback branch, so photo mode had none. Restored in photo mode
+   only: dark-red title bar (same pattern as station headers) — "SERVICE
+   WINDOW" + "click here to serve" — drawn after the if/else, clear of the
+   bell (by=y+118) and plate stacks.
+Verification: node --check OK; ?test=1 self-test 14/14 PASS; all 4 shots
+re-rendered with backdrop+sprites-ready; viewed 2-play full-res + 300px
+(reads as one coherent 3D diner at judge scale) and 4-serve full-res
+(READY pill + DING pill + title bar all legible); grader-style
+MAKEFUN_OUTPUT_DIR=out node main.ts twice → byte-identical, dossier
+1,246,128 B (under 1.5 MiB cap); makefun check 4 passed / 1 failed
+(transcripts_present — no bundle yet, expected) / 15 skipped, identical to
+the pre-fix baseline. New screenshot hashes: 1-start d0d9e1a3…, 2-play
+4ad3699a…, 3-rush 253c01d9…, 4-serve 86f1355f….
+Honest verdict: the three named defects are gone. Remaining (out of scope):
+the food icons and order tickets are still vector by necessity; the station
+tiles have no label bars in photo mode (drawStationBase is only called in
+the vector fallback — the photos are bare, so a first-time player reads the
+station from its picture, not a label); 4-serve floaters (+$18 / FAST! tip)
+overlap the serve window's right edge slightly (pre-existing staged effect).
