@@ -13,13 +13,22 @@ const TICKET_H = 140;
 const TICKET_GAP = 10;
 const TICKET_TOP = 106;
 
-// Stations, top row.
-const GRILL = { x: 320, y: 92, w: 272, h: 190 };
-const CHOPPER = { x: 608, y: 92, w: 272, h: 190 };
-const POT = { x: 896, y: 92, w: 272, h: 190 };
+// Background restaurant band (y 64..196) sits above the stations: this is
+// where the windows, lamps, chairs and the two staff characters live.
+// Characters stand behind the stations (drawn before them, so the station
+// panels cover everything below y=196 — chest-up portraits, as in the ref).
+const BG_BAND = { x: 0, y: 64, w: 1280, h: 132 };
+const WAITER_CX = 400;
+const WAITRESS_CX = 1030;
+const CHAR_TOP = 64;
+
+// Stations, top row — moved down (was y=92) so the restaurant band reads.
+const GRILL = { x: 320, y: 196, w: 272, h: 150 };
+const CHOPPER = { x: 608, y: 196, w: 272, h: 150 };
+const POT = { x: 896, y: 196, w: 272, h: 150 };
 // Assembly + serving, bottom row of the kitchen.
-const PLATE = { x: 320, y: 298, w: 352, h: 262 };
-const SERVE = { x: 688, y: 298, w: 480, h: 262 };
+const PLATE = { x: 320, y: 362, w: 352, h: 198 };
+const SERVE = { x: 688, y: 362, w: 480, h: 198 };
 
 // Ingredient bins along the bottom (7 ingredients + trash).
 // y=592 leaves a clean 16px gap under the counter band (ends 576) for the
@@ -33,15 +42,15 @@ function binRect(i) {
   return { x: BIN_ROW.x + i * (w + BIN_GAP), y: BIN_ROW.y, w, h: BIN_ROW.h };
 }
 
-// Two work slots inside a station rect.
+// Two work slots inside a station rect (stations are 150 tall now).
 function slotRect(station, i) {
   const pad = 14;
   const w = (station.w - pad * 2 - 12) / 2;
   return {
     x: station.x + pad + i * (w + 12),
-    y: station.y + 74,
+    y: station.y + 52,
     w,
-    h: station.h - 88,
+    h: station.h - 66,
   };
 }
 

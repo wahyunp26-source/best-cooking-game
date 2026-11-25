@@ -57,6 +57,415 @@ function linearGrad(ctx, x0, y0, x1, y1, c0, c1) {
   return g;
 }
 
+// ---------- reference palette (measured from Wahyu's ref image) ----------
+const PAL = {
+  cream: '#eae0d9', gold: '#e6d1a3', tan: '#dd9b67', wood: '#ab8e6c',
+  caramel: '#9f542d', midBrown: '#9e6859', deep: '#63231a', coral: '#d8645d',
+  strongRed: '#9c261d', rose: '#dda897', mauve: '#685a66', steel: '#a39a9a',
+  leaf: '#5a7d3a', darkLeaf: '#3f6b2f', sky: '#7fa8c9', teal: '#6a9a94',
+  plate: '#f7f2ea', ink: '#3a2a1a',
+};
+
+// Diamond crosshatch grill marks, clipped to a rect.
+function drawCrosshatch(ctx, x, y, w, h, color, lw) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, w, h);
+  ctx.clip();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw || 2;
+  const step = 11;
+  for (let d = -h; d < w + h; d += step) {
+    ctx.beginPath();
+    ctx.moveTo(x + d, y);
+    ctx.lineTo(x + d + h, y + h);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + d, y + h);
+    ctx.lineTo(x + d + h, y);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// Big round steak: irregular oval, caramel radial, crosshatch, gloss arc.
+// cx, cy centre; rx, ry radii.
+function drawSteak(ctx, cx, cy, rx, ry) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(-0.06);
+  ctx.fillStyle = 'rgba(99,35,26,0.22)';
+  ctx.beginPath();
+  ctx.ellipse(2, ry * 0.55, rx * 0.95, ry * 0.4, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = radialGrad(ctx, 0, -ry * 0.2, rx, '#c07a45', '#9f542d');
+  ctx.beginPath();
+  ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(99,35,26,0.55)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  drawCrosshatch(ctx, -rx * 0.85, -ry * 0.8, rx * 1.7, ry * 1.6, 'rgba(74,42,16,0.75)', 2.5);
+  ctx.fillStyle = 'rgba(255,235,200,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(-rx * 0.35, -ry * 0.5, rx * 0.4, ry * 0.22, -0.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+// ---------- restaurant background (band y 64..196 + floor + counters) ----------
+function drawArchedWindow(ctx, x, y, w, h) {
+  ctx.save();
+  ctx.fillStyle = '#8a6a4a';
+  rr(ctx, x - 5, y - 5, w + 10, h + 10, 18);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(x, y + h);
+  ctx.lineTo(x, y + 22);
+  ctx.arc(x + w / 2, y + 22, w / 2, Math.PI, 0);
+  ctx.lineTo(x + w, y + h);
+  ctx.closePath();
+  const sky = ctx.createLinearGradient(0, y, 0, y + h);
+  sky.addColorStop(0, '#8fb6d4');
+  sky.addColorStop(1, '#c9d9e8');
+  ctx.fillStyle = sky;
+  ctx.fill();
+  const sun = ctx.createRadialGradient(x + w * 0.72, y + h * 0.3, 2, x + w * 0.72, y + h * 0.3, w * 0.5);
+  sun.addColorStop(0, 'rgba(230,209,163,0.9)');
+  sun.addColorStop(1, 'rgba(230,209,163,0)');
+  ctx.fillStyle = sun;
+  ctx.fill();
+  ctx.strokeStyle = '#8a6a4a';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(x + w / 2, y + 4);
+  ctx.lineTo(x + w / 2, y + h);
+  ctx.moveTo(x, y + h * 0.55);
+  ctx.lineTo(x + w, y + h * 0.55);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawWallLamp(ctx, x, y) {
+  const glow = ctx.createRadialGradient(x, y, 2, x, y, 46);
+  glow.addColorStop(0, 'rgba(255,214,130,0.55)');
+  glow.addColorStop(1, 'rgba(255,214,130,0)');
+  ctx.fillStyle = glow;
+  circle(ctx, x, y, 46);
+  ctx.fill();
+  ctx.fillStyle = '#8a6a4a';
+  ctx.fillRect(x - 3, y - 26, 6, 14);
+  ctx.fillStyle = '#e6d1a3';
+  ctx.beginPath();
+  ctx.moveTo(x - 12, y - 12);
+  ctx.lineTo(x + 12, y - 12);
+  ctx.lineTo(x + 7, y + 2);
+  ctx.lineTo(x - 7, y + 2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#ffd94d';
+  circle(ctx, x, y + 4, 5);
+  ctx.fill();
+}
+
+function drawChair(ctx, x, y, color, flip) {
+  ctx.save();
+  ctx.translate(x, y);
+  if (flip) ctx.scale(-1, 1);
+  ctx.fillStyle = 'rgba(99,35,26,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(0, 34, 20, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = color;
+  rr(ctx, -14, -30, 28, 34, 12);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.18)';
+  rr(ctx, -14, -30, 28, 8, 12);
+  ctx.fill();
+  ctx.fillStyle = '#6a4a34';
+  ctx.fillRect(-12, 4, 4, 28);
+  ctx.fillRect(8, 4, 4, 28);
+  ctx.restore();
+}
+
+function drawTable(ctx, x, y) {
+  ctx.fillStyle = 'rgba(99,35,26,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 30, 34, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#f7f2ea';
+  ctx.beginPath();
+  ctx.ellipse(x, y, 36, 10, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#ab8e6c';
+  ctx.fillRect(x - 3, y + 6, 6, 24);
+  ctx.fillStyle = '#8a6a4a';
+  ctx.beginPath();
+  ctx.ellipse(x, y + 30, 16, 4, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawRestaurant(ctx) {
+  // Wall: warm cream gradient.
+  const wall = ctx.createLinearGradient(0, 64, 0, 560);
+  wall.addColorStop(0, '#f2e6d2');
+  wall.addColorStop(0.5, '#e9d8b4');
+  wall.addColorStop(1, '#e0c99a');
+  ctx.fillStyle = wall;
+  ctx.fillRect(0, 64, STAGE_W, 496);
+  // Arched windows (clear of the characters at x 336..466 and 966..1096).
+  drawArchedWindow(ctx, 548, 72, 132, 92);
+  drawArchedWindow(ctx, 1120, 72, 128, 92);
+  // Wall lamps.
+  drawWallLamp(ctx, 742, 108);
+  drawWallLamp(ctx, 896, 108);
+  // Brick band along the bottom of the wall.
+  ctx.fillStyle = '#9e6859';
+  ctx.fillRect(0, 168, STAGE_W, 28);
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.fillRect(0, 168, STAGE_W, 3);
+  ctx.fillRect(0, 182, STAGE_W, 2);
+  for (let bx = 12; bx < STAGE_W; bx += 48) {
+    ctx.fillRect(bx, 168, 2, 28);
+    ctx.fillRect(bx + 24, 182, 2, 14);
+  }
+  // Tables + pink/teal chairs peeking above the counter line.
+  drawTable(ctx, 620, 168);
+  drawChair(ctx, 578, 162, '#dda897', false);
+  drawChair(ctx, 664, 162, '#6a9a94', true);
+  drawTable(ctx, 1180, 168);
+  drawChair(ctx, 1140, 162, '#6a9a94', false);
+  // Wood floor at the very bottom.
+  ctx.fillStyle = '#ab8e6c';
+  ctx.fillRect(0, 756, STAGE_W, 44);
+  ctx.fillStyle = '#8a6a4a';
+  for (let fx = 0; fx < STAGE_W; fx += 96) ctx.fillRect(fx, 756, 2, 44);
+  ctx.fillRect(0, 770, STAGE_W, 2);
+  ctx.fillRect(0, 785, STAGE_W, 2);
+  // Wooden counter edge between the station row and the plate row.
+  ctx.fillStyle = '#a9703f';
+  ctx.fillRect(304, 346, 976, 16);
+  ctx.fillStyle = '#c08a4e';
+  ctx.fillRect(304, 346, 976, 3);
+  ctx.fillStyle = '#8d5a2b';
+  ctx.fillRect(304, 358, 976, 4);
+  // Wooden counter edge under the plate/serve row.
+  ctx.fillStyle = '#a9703f';
+  ctx.fillRect(304, 560, 976, 16);
+  ctx.fillStyle = '#c08a4e';
+  ctx.fillRect(304, 560, 976, 3);
+  ctx.fillStyle = '#8d5a2b';
+  ctx.fillRect(304, 572, 976, 4);
+  // Wooden counter strip the ingredient bowls sit on.
+  ctx.fillStyle = '#c08a4e';
+  ctx.fillRect(16, 576, 1248, 16);
+  ctx.fillStyle = '#a9703f';
+  ctx.fillRect(16, 588, 1248, 4);
+}
+
+// ---------- staff characters (chest-up, drawn behind the stations) ----------
+function drawFace(ctx, cx, cy, skin) {
+  ctx.fillStyle = skin;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy, 34, 40, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(99,35,26,0.5)';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  // Ears.
+  ctx.fillStyle = skin;
+  circle(ctx, cx - 34, cy + 2, 7);
+  ctx.fill();
+  circle(ctx, cx + 34, cy + 2, 7);
+  ctx.fill();
+}
+
+function drawEyes(ctx, cx, cy, lashes) {
+  for (const dx of [-13, 13]) {
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(cx + dx, cy, 8, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#2a2018';
+    circle(ctx, cx + dx, cy + 1, 4.5);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    circle(ctx, cx + dx - 1.5, cy - 1.5, 1.8);
+    ctx.fill();
+    if (lashes) {
+      ctx.strokeStyle = '#2a2018';
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(cx + dx - 6, cy - 8);
+      ctx.lineTo(cx + dx - 9, cy - 12);
+      ctx.moveTo(cx + dx + 6, cy - 8);
+      ctx.lineTo(cx + dx + 9, cy - 12);
+      ctx.stroke();
+    }
+  }
+  ctx.strokeStyle = 'rgba(99,35,26,0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx - 20, cy - 16);
+  ctx.quadraticCurveTo(cx - 13, cy - 20, cx - 6, cy - 16);
+  ctx.moveTo(cx + 6, cy - 16);
+  ctx.quadraticCurveTo(cx + 13, cy - 20, cx + 20, cy - 16);
+  ctx.stroke();
+}
+
+function drawSmile(ctx, cx, cy, color) {
+  ctx.strokeStyle = color || '#8e4a3a';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.arc(cx, cy, 11, Math.PI * 0.15, Math.PI * 0.85);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(217,100,93,0.35)';
+  circle(ctx, cx - 22, cy + 8, 5);
+  ctx.fill();
+  circle(ctx, cx + 22, cy + 8, 5);
+  ctx.fill();
+}
+
+function drawWaiter(ctx) {
+  const cx = WAITER_CX, top = CHAR_TOP;
+  ctx.save();
+  // Shoulders: navy suit.
+  ctx.fillStyle = '#2f4a7a';
+  ctx.beginPath();
+  ctx.moveTo(cx - 66, top + 176);
+  ctx.quadraticCurveTo(cx - 64, top + 118, cx - 34, top + 108);
+  ctx.lineTo(cx + 34, top + 108);
+  ctx.quadraticCurveTo(cx + 64, top + 118, cx + 66, top + 176);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(99,35,26,0.5)';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath();
+  ctx.moveTo(cx - 60, top + 176);
+  ctx.quadraticCurveTo(cx - 58, top + 122, cx - 34, top + 112);
+  ctx.lineTo(cx - 18, top + 176);
+  ctx.closePath();
+  ctx.fill();
+  // Shirt + tie.
+  ctx.fillStyle = '#f7f2ea';
+  ctx.beginPath();
+  ctx.moveTo(cx - 16, top + 108);
+  ctx.lineTo(cx + 16, top + 108);
+  ctx.lineTo(cx + 10, top + 176);
+  ctx.lineTo(cx - 10, top + 176);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#9c261d';
+  ctx.beginPath();
+  ctx.moveTo(cx - 5, top + 112);
+  ctx.lineTo(cx + 5, top + 112);
+  ctx.lineTo(cx + 7, top + 150);
+  ctx.lineTo(cx, top + 162);
+  ctx.lineTo(cx - 7, top + 150);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#f7f2ea';
+  ctx.beginPath();
+  ctx.moveTo(cx - 16, top + 108);
+  ctx.lineTo(cx, top + 122);
+  ctx.lineTo(cx - 8, top + 132);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx + 16, top + 108);
+  ctx.lineTo(cx, top + 122);
+  ctx.lineTo(cx + 8, top + 132);
+  ctx.closePath();
+  ctx.fill();
+  // Neck + head.
+  ctx.fillStyle = '#dd9b67';
+  ctx.fillRect(cx - 10, top + 88, 20, 24);
+  drawFace(ctx, cx, top + 52, '#dd9b67');
+  // Dark side-parted hair.
+  ctx.fillStyle = '#2e2118';
+  ctx.beginPath();
+  ctx.ellipse(cx, top + 26, 36, 24, 0, Math.PI, 0);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx - 36, top + 28);
+  ctx.quadraticCurveTo(cx - 30, top + 2, cx - 6, top + 10);
+  ctx.quadraticCurveTo(cx + 18, top + 2, cx + 34, top + 14);
+  ctx.quadraticCurveTo(cx + 38, top + 26, cx + 36, top + 30);
+  ctx.lineTo(cx + 30, top + 18);
+  ctx.quadraticCurveTo(cx, top + 8, cx - 30, top + 18);
+  ctx.closePath();
+  ctx.fill();
+  drawEyes(ctx, cx, top + 52, false);
+  drawSmile(ctx, cx, top + 72);
+  ctx.restore();
+}
+
+function drawWaitress(ctx) {
+  const cx = WAITRESS_CX, top = CHAR_TOP;
+  ctx.save();
+  // Blonde hair behind the shoulders.
+  ctx.fillStyle = '#e6c87a';
+  ctx.beginPath();
+  ctx.ellipse(cx, top + 96, 44, 66, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Shoulders: pink/red dress.
+  ctx.fillStyle = '#d8645d';
+  ctx.beginPath();
+  ctx.moveTo(cx - 62, top + 176);
+  ctx.quadraticCurveTo(cx - 60, top + 116, cx - 32, top + 106);
+  ctx.lineTo(cx + 32, top + 106);
+  ctx.quadraticCurveTo(cx + 60, top + 116, cx + 62, top + 176);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(99,35,26,0.5)';
+  ctx.lineWidth = 2.5;
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  ctx.beginPath();
+  ctx.moveTo(cx - 56, top + 176);
+  ctx.quadraticCurveTo(cx - 54, top + 120, cx - 30, top + 110);
+  ctx.lineTo(cx - 16, top + 176);
+  ctx.closePath();
+  ctx.fill();
+  // Dress neckline.
+  ctx.fillStyle = '#f7f2ea';
+  ctx.beginPath();
+  ctx.moveTo(cx - 20, top + 106);
+  ctx.quadraticCurveTo(cx, top + 128, cx + 20, top + 106);
+  ctx.quadraticCurveTo(cx, top + 118, cx - 20, top + 106);
+  ctx.closePath();
+  ctx.fill();
+  // Neck + head.
+  ctx.fillStyle = '#e8b48a';
+  ctx.fillRect(cx - 9, top + 86, 18, 24);
+  drawFace(ctx, cx, top + 50, '#e8b48a');
+  // Blonde waves framing the face.
+  ctx.fillStyle = '#e6c87a';
+  ctx.beginPath();
+  ctx.ellipse(cx, top + 22, 37, 22, 0, Math.PI, 0);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx - 34, top + 48, 12, 26, 0.25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx + 34, top + 48, 12, 26, -0.25, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx - 36, top + 30);
+  ctx.quadraticCurveTo(cx - 34, top + 2, cx, top + 4);
+  ctx.quadraticCurveTo(cx + 34, top + 2, cx + 36, top + 30);
+  ctx.quadraticCurveTo(cx + 30, top + 16, cx, top + 14);
+  ctx.quadraticCurveTo(cx - 30, top + 16, cx - 36, top + 30);
+  ctx.closePath();
+  ctx.fill();
+  drawEyes(ctx, cx, top + 50, true);
+  drawSmile(ctx, cx, top + 70, '#c65a5a');
+  ctx.restore();
+}
+
 // ---------- food icons (drawn at cx, cy, fitting inside `size`) ----------
 function drawIngredient(ctx, kind, state, cx, cy, size) {
   const s = size / 2;
@@ -93,10 +502,12 @@ function drawIngredient(ctx, kind, state, cx, cy, size) {
     if (big) foodShadow(ctx, s);
     if (state === 'burnt') {
       ctx.fillStyle = '#26211d';
-      rr(ctx, -s, -s * 0.42, s * 2, s * 0.84, 6);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, s, s * 0.45, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,0.10)';
-      rr(ctx, -s, -s * 0.42, s * 2, s * 0.2, 6);
+      ctx.beginPath();
+      ctx.ellipse(-s * 0.3, -s * 0.2, s * 0.4, s * 0.14, -0.4, 0, Math.PI * 2);
       ctx.fill();
       ctx.strokeStyle = '#0f0c0a';
       ctx.lineWidth = 2;
@@ -107,33 +518,33 @@ function drawIngredient(ctx, kind, state, cx, cy, size) {
       ctx.lineTo(-s * 0.1, s * 0.3);
       ctx.stroke();
     } else if (state === 'grilled') {
-      ctx.fillStyle = linearGrad(ctx, 0, -s * 0.42, 0, s * 0.42, '#8a542e', '#5d3418');
-      rr(ctx, -s, -s * 0.42, s * 2, s * 0.84, 6);
+      // Round steak: caramel radial, diamond crosshatch, gloss arc.
+      ctx.fillStyle = radialGrad(ctx, 0, -s * 0.1, s, '#c07a45', '#9f542d');
+      ctx.beginPath();
+      ctx.ellipse(0, 0, s, s * 0.45, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.strokeStyle = '#4a2a10';
-      ctx.lineWidth = 3;
-      for (const dx of [-s * 0.5, 0, s * 0.5]) {
-        ctx.beginPath();
-        ctx.moveTo(dx, -s * 0.42);
-        ctx.lineTo(dx, s * 0.42);
-        ctx.stroke();
-      }
-      ctx.fillStyle = 'rgba(255,220,170,0.28)';
-      rr(ctx, -s + 3, -s * 0.42, s * 2 - 6, s * 0.18, 6);
-      ctx.fill();
-      ctx.fillStyle = 'rgba(0,0,0,0.22)';
-      rr(ctx, -s, s * 0.26, s * 2, s * 0.16, 6);
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(0, 0, s * 0.92, s * 0.4, 0, 0, Math.PI * 2);
+      ctx.clip();
+      drawCrosshatch(ctx, -s, -s * 0.45, s * 2, s * 0.9, 'rgba(74,42,16,0.7)', 2);
+      ctx.restore();
+      ctx.fillStyle = 'rgba(255,235,200,0.35)';
+      ctx.beginPath();
+      ctx.ellipse(-s * 0.32, -s * 0.2, s * 0.36, s * 0.12, -0.4, 0, Math.PI * 2);
       ctx.fill();
     } else {
+      // Raw steak: pink oval, white fat marbling, gloss.
       ctx.fillStyle = radialGrad(ctx, 0, 0, s, '#e89a90', '#bd655c');
-      rr(ctx, -s, -s * 0.42, s * 2, s * 0.84, 6);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, s, s * 0.45, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#a8544c';
-      circle(ctx, -s * 0.4, 0, 3);
+      ctx.fillStyle = '#f2c9c2';
+      ctx.beginPath();
+      ctx.ellipse(-s * 0.35, -s * 0.05, s * 0.3, s * 0.08, 0.3, 0, Math.PI * 2);
       ctx.fill();
-      circle(ctx, s * 0.35, -2, 3);
-      ctx.fill();
-      circle(ctx, s * 0.1, s * 0.22, 2.5);
+      ctx.beginPath();
+      ctx.ellipse(s * 0.3, s * 0.1, s * 0.25, s * 0.07, -0.3, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = 'rgba(255,255,255,0.3)';
       ctx.beginPath();
@@ -364,45 +775,74 @@ function drawStationBase(ctx, rect, label, sub, accent) {
 
 function drawGrill(ctx, hover) {
   drawStationBase(ctx, GRILL, 'GRILL', 'patty · 4s', '#c65a3c');
-  ctx.fillStyle = '#3c3a38';
-  rr(ctx, GRILL.x + 14, GRILL.y + 54, GRILL.w - 28, GRILL.h - 68, 10);
+  // Red machine frame + silver rim + dark bed, like the ref grill.
+  ctx.fillStyle = '#d8645d';
+  rr(ctx, GRILL.x + 10, GRILL.y + 50, GRILL.w - 20, GRILL.h - 54, 10);
   ctx.fill();
-  // Inner top shadow + horizontal grate for depth.
-  ctx.save();
-  rr(ctx, GRILL.x + 14, GRILL.y + 54, GRILL.w - 28, GRILL.h - 68, 10);
-  ctx.clip();
-  const bedGrad = ctx.createLinearGradient(0, GRILL.y + 54, 0, GRILL.y + 80);
-  bedGrad.addColorStop(0, 'rgba(0,0,0,0.5)');
-  bedGrad.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.fillStyle = bedGrad;
-  ctx.fillRect(GRILL.x + 14, GRILL.y + 54, GRILL.w - 28, 26);
-  ctx.strokeStyle = '#5a5652';
+  ctx.fillStyle = '#b03a2e';
+  rr(ctx, GRILL.x + 10, GRILL.y + GRILL.h - 60, GRILL.w - 20, 6, 3);
+  ctx.fill();
+  ctx.strokeStyle = '#a39a9a';
   ctx.lineWidth = 3;
-  for (let i = 1; i < 6; i++) {
-    const x = GRILL.x + 14 + ((GRILL.w - 28) / 6) * i;
+  rr(ctx, GRILL.x + 14, GRILL.y + 54, GRILL.w - 28, GRILL.h - 68, 8);
+  ctx.stroke();
+  ctx.fillStyle = '#63231a';
+  rr(ctx, GRILL.x + 16, GRILL.y + 56, GRILL.w - 32, GRILL.h - 78, 7);
+  ctx.fill();
+  // Parallel grate slots with orange ember glow between them.
+  ctx.save();
+  rr(ctx, GRILL.x + 16, GRILL.y + 56, GRILL.w - 32, GRILL.h - 78, 7);
+  ctx.clip();
+  const ember = ctx.createLinearGradient(0, GRILL.y + 100, 0, GRILL.y + GRILL.h - 22);
+  ember.addColorStop(0, 'rgba(255,120,30,0)');
+  ember.addColorStop(1, 'rgba(255,120,30,0.5)');
+  ctx.fillStyle = ember;
+  ctx.fillRect(GRILL.x + 16, GRILL.y + 96, GRILL.w - 32, GRILL.h - 118);
+  ctx.strokeStyle = '#2a1a12';
+  ctx.lineWidth = 5;
+  for (let i = 1; i < 5; i++) {
+    const x = GRILL.x + 16 + ((GRILL.w - 32) / 5) * i;
     ctx.beginPath();
-    ctx.moveTo(x, GRILL.y + 58);
-    ctx.lineTo(x, GRILL.y + GRILL.h - 18);
+    ctx.moveTo(x, GRILL.y + 60);
+    ctx.lineTo(x, GRILL.y + GRILL.h - 26);
     ctx.stroke();
   }
-  ctx.strokeStyle = 'rgba(90,86,82,0.7)';
-  ctx.lineWidth = 2;
-  for (const gy of [GRILL.y + 100, GRILL.y + 138]) {
+  ctx.fillStyle = 'rgba(255,150,50,0.35)';
+  for (let i = 0; i < 4; i++) {
+    const x = GRILL.x + 30 + i * ((GRILL.w - 60) / 3);
     ctx.beginPath();
-    ctx.moveTo(GRILL.x + 16, gy);
-    ctx.lineTo(GRILL.x + GRILL.w - 16, gy);
-    ctx.stroke();
+    ctx.ellipse(x, GRILL.y + GRILL.h - 26, 10, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
   }
   ctx.restore();
-  // Ember glow at the bed's bottom edge.
-  ctx.fillStyle = 'rgba(255,110,30,0.12)';
-  rr(ctx, GRILL.x + 14, GRILL.y + GRILL.h - 30, GRILL.w - 28, 12, 6);
-  ctx.fill();
+  // Indicator lights + vent slots on the frame's front strip.
+  const ly = GRILL.y + GRILL.h - 13;
+  const lightCols = ['#5da85f', '#f2c94c', '#d94f3d'];
+  lightCols.forEach((c, i) => {
+    ctx.fillStyle = c;
+    circle(ctx, GRILL.x + 34 + i * 18, ly, 4.5);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    circle(ctx, GRILL.x + 32.5 + i * 18, ly - 1.5, 1.5);
+    ctx.fill();
+  });
+  ctx.strokeStyle = 'rgba(99,35,26,0.6)';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 5; i++) {
+    const x = GRILL.x + GRILL.w - 62 + i * 10;
+    ctx.beginPath();
+    ctx.moveTo(x, ly - 5);
+    ctx.lineTo(x, ly + 5);
+    ctx.stroke();
+  }
   const cooking = Game.grill.slots.some((s) => s.item && !s.done);
   if (cooking) {
-    ctx.fillStyle = 'rgba(255,120,40,' + (0.25 + 0.15 * Math.sin(performance.now() / 180)) + ')';
-    rr(ctx, GRILL.x + 14, GRILL.y + 54, GRILL.w - 28, GRILL.h - 68, 10);
-    ctx.fill();
+    ctx.save();
+    rr(ctx, GRILL.x + 16, GRILL.y + 56, GRILL.w - 32, GRILL.h - 78, 7);
+    ctx.clip();
+    ctx.fillStyle = 'rgba(255,120,40,' + (0.12 + 0.08 * Math.sin(performance.now() / 180)) + ')';
+    ctx.fillRect(GRILL.x + 16, GRILL.y + 56, GRILL.w - 32, GRILL.h - 78);
+    ctx.restore();
   }
   Game.grill.slots.forEach((slot, i) => {
     const r = slotRect(GRILL, i);
@@ -415,8 +855,12 @@ function drawGrill(ctx, hover) {
         text(ctx, 'READY', r.x + r.w / 2, r.y + 16, 12, '#7ddc8a', 'center');
       }
     } else {
-      ctx.fillStyle = 'rgba(255,255,255,0.10)';
+      // Empty grate slot: dark slot with a faint ember line at its base.
+      ctx.fillStyle = 'rgba(0,0,0,0.3)';
       rr(ctx, r.x, r.y, r.w, r.h, 8);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,140,50,0.4)';
+      rr(ctx, r.x + 10, r.y + r.h - 12, r.w - 20, 4, 2);
       ctx.fill();
     }
   });
@@ -462,13 +906,40 @@ function drawChopper(ctx, hover) {
     if (slot.item) {
       drawIngredient(ctx, slot.item.kind, slot.item.state, r.x + r.w / 2, r.y + r.h / 2 - 6, 62);
       drawProgressRing(ctx, r.x + r.w / 2, r.y + r.h - 14, 13, slot.progress, slot.done);
-      if (slot.done) text(ctx, 'READY', r.x + r.w / 2, r.y + 16, 12, '#2f7a33', 'center');
+      if (slot.done) {
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        rr(ctx, r.x + r.w / 2 - 32, r.y + 6, 64, 20, 10);
+        ctx.fill();
+        text(ctx, 'READY', r.x + r.w / 2, r.y + 16, 12, '#7ddc8a', 'center');
+      }
     } else {
       ctx.fillStyle = 'rgba(0,0,0,0.06)';
       rr(ctx, r.x, r.y, r.w, r.h, 8);
       ctx.fill();
     }
   });
+  // Chef's knife resting across the board's top edge.
+  ctx.save();
+  ctx.translate(CHOPPER.x + CHOPPER.w - 52, CHOPPER.y + 60);
+  ctx.rotate(-0.35);
+  ctx.fillStyle = '#c9d2da';
+  ctx.beginPath();
+  ctx.moveTo(0, -4);
+  ctx.lineTo(44, -6);
+  ctx.lineTo(52, 0);
+  ctx.lineTo(44, 6);
+  ctx.lineTo(0, 4);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.fillRect(6, -3, 30, 2);
+  ctx.fillStyle = '#5d3a22';
+  rr(ctx, -18, -5, 20, 10, 4);
+  ctx.fill();
+  ctx.fillStyle = '#8a6a4a';
+  circle(ctx, -14, 0, 2);
+  ctx.fill();
+  ctx.restore();
   if (hover) {
     ctx.strokeStyle = '#ffd94d';
     ctx.lineWidth = 3;
@@ -548,8 +1019,15 @@ function drawPlate(ctx, hover) {
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   rr(ctx, PLATE.x + 3, PLATE.y + 5, PLATE.w, PLATE.h, 14);
   ctx.fill();
-  ctx.fillStyle = '#fdf6e3';
+  // Dark slate tray the plated dishes sit on (ref: plates on a dark tray).
+  const trayGrad = ctx.createLinearGradient(0, PLATE.y, 0, PLATE.y + PLATE.h);
+  trayGrad.addColorStop(0, '#5a4a52');
+  trayGrad.addColorStop(1, '#453a41');
+  ctx.fillStyle = trayGrad;
   rr(ctx, PLATE.x, PLATE.y, PLATE.w, PLATE.h, 14);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  rr(ctx, PLATE.x + 6, PLATE.y + 44, PLATE.w - 12, 3, 2);
   ctx.fill();
   ctx.fillStyle = glow ? '#5da85f' : '#8d5a2b';
   rr(ctx, PLATE.x, PLATE.y, PLATE.w, 40, 14);
@@ -558,7 +1036,7 @@ function drawPlate(ctx, hover) {
   text(ctx, 'PLATE — build the dish here', PLATE.x + 16, PLATE.y + 21, 17, '#fff');
   // The plate itself.
   const cx = PLATE.x + PLATE.w / 2;
-  const cy = PLATE.y + 158;
+  const cy = PLATE.y + 118;
   ctx.fillStyle = '#e8e2d4';
   ctx.beginPath();
   ctx.ellipse(cx, cy + 8, 128, 34, 0, 0, Math.PI * 2);
@@ -567,8 +1045,8 @@ function drawPlate(ctx, hover) {
   ctx.beginPath();
   ctx.ellipse(cx, cy, 128, 34, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = '#d8d2c2';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = '#e6d1a3';
+  ctx.lineWidth = 3;
   ctx.beginPath();
   ctx.ellipse(cx, cy, 100, 24, 0, 0, Math.PI * 2);
   ctx.stroke();
@@ -577,6 +1055,7 @@ function drawPlate(ctx, hover) {
     text(ctx, 'then click the plate to stack', cx, cy + 16, 15, '#b9a98e', 'center');
   } else {
     drawPlateStack(ctx, Game.plate, cx, cy);
+    drawPlateGarnish(ctx, cx, cy, Game.plate.some((p) => p.kind === 'bun'), Game.plate.some((p) => p.kind === 'pasta'));
   }
   if (match) {
     const pulse = 0.6 + 0.4 * Math.sin(performance.now() / 150);
@@ -584,15 +1063,85 @@ function drawPlate(ctx, hover) {
     ctx.lineWidth = 5;
     rr(ctx, PLATE.x - 3, PLATE.y - 3, PLATE.w + 6, PLATE.h + 6, 16);
     ctx.stroke();
-    text(ctx, '✓ ' + recipeById(match.recipeId).name.toUpperCase() + ' — READY TO SERVE!', cx, PLATE.y + PLATE.h - 18, 16, '#2f7a33', 'center');
+    text(ctx, '✓ ' + recipeById(match.recipeId).name.toUpperCase() + ' — READY TO SERVE!', cx, PLATE.y + PLATE.h - 18, 16, '#7ddc8a', 'center');
   } else if (Game.plate.length > 0) {
-    text(ctx, 'keep stacking — check the tickets', cx, PLATE.y + PLATE.h - 18, 14, '#8a7a62', 'center');
+    text(ctx, 'keep stacking — check the tickets', cx, PLATE.y + PLATE.h - 18, 14, '#c9bda6', 'center');
   }
   if (hover) {
     ctx.strokeStyle = '#ffd94d';
     ctx.lineWidth = 3;
     rr(ctx, PLATE.x - 2, PLATE.y - 2, PLATE.w + 4, PLATE.h + 4, 16);
     ctx.stroke();
+  }
+}
+
+// Every plated dish gets exactly 2 garnishes (ref: asparagus + lemon, or
+// cherry tomatoes + sauce swoosh) — that is what makes a plate read as
+// restaurant food instead of a bare stack.
+function drawPlateGarnish(ctx, cx, cy, hasBun, hasPasta) {
+  // Asparagus spears, left of the stack.
+  ctx.strokeStyle = '#5a7d3a';
+  ctx.lineWidth = 4;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < 3; i++) {
+    const gx = cx - 96 + i * 9;
+    ctx.beginPath();
+    ctx.moveTo(gx, cy + 12);
+    ctx.lineTo(gx - 4, cy - 14 - i * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#7ccb74';
+    ctx.beginPath();
+    ctx.ellipse(gx - 4, cy - 16 - i * 2, 3.5, 6, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (hasPasta) {
+    // Cherry tomatoes + dark sauce swoosh, right of the stack.
+    for (let i = 0; i < 3; i++) {
+      const tx = cx + 88 + (i - 1) * 16;
+      const ty = cy - 4 + (i % 2) * 10;
+      ctx.fillStyle = '#d94f3d';
+      circle(ctx, tx, ty, 8);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      circle(ctx, tx - 2.5, ty - 2.5, 2.5);
+      ctx.fill();
+      ctx.fillStyle = '#3f6b2f';
+      ctx.beginPath();
+      ctx.ellipse(tx, ty - 8, 4, 2.5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.strokeStyle = '#5d3a22';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(cx + 62, cy + 16);
+    ctx.quadraticCurveTo(cx + 92, cy + 24, cx + 116, cy + 12);
+    ctx.stroke();
+  } else {
+    // Lemon wedge, right of the stack.
+    ctx.save();
+    ctx.translate(cx + 96, cy + 2);
+    ctx.rotate(0.3);
+    ctx.fillStyle = '#f2d06b';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, 16, -Math.PI * 0.15, Math.PI * 0.75);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#fbe89a';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, 12, -Math.PI * 0.1, Math.PI * 0.7);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#e8b32a';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(10, 8);
+    ctx.moveTo(0, 0);
+    ctx.lineTo(2, 11);
+    ctx.stroke();
+    ctx.restore();
   }
 }
 
@@ -629,14 +1178,7 @@ function drawPlateLayer(ctx, kind, state, cx, y, w, h) {
     rr(ctx, x, y, w, h, 7);
     ctx.fill();
     if (state !== 'burnt') {
-      ctx.strokeStyle = '#4a2a10';
-      ctx.lineWidth = 2.5;
-      for (const dx of [-w * 0.25, 0, w * 0.25]) {
-        ctx.beginPath();
-        ctx.moveTo(cx + dx, y + 2);
-        ctx.lineTo(cx + dx, y + h - 2);
-        ctx.stroke();
-      }
+      drawCrosshatch(ctx, x + 3, y + 1, w - 6, h - 2, 'rgba(74,42,16,0.7)', 2);
       ctx.fillStyle = 'rgba(255,220,170,0.25)';
       rr(ctx, x + 3, y + 1, w - 6, 4, 2);
       ctx.fill();
@@ -714,15 +1256,15 @@ function drawPlateLayer(ctx, kind, state, cx, y, w, h) {
 function drawPlateStack(ctx, plate, cx, cy) {
   const has = (k) => plate.some((p) => p.kind === k);
   const W = 132;
-  const LAYER_H = 15;
+  const LAYER_H = 11;
   let y = cy + 8; // stack base sits on the plate surface; layers grow upward
   if (has('bun')) {
-    y -= 12;
-    drawPlateLayer(ctx, 'bunBottom', null, cx, y, W - 6, 12);
+    y -= 9;
+    drawPlateLayer(ctx, 'bunBottom', null, cx, y, W - 6, 9);
   }
   if (has('pasta')) {
-    y -= 26;
-    drawPlateLayer(ctx, 'pasta', 'boiled', cx, y, W, 26);
+    y -= 20;
+    drawPlateLayer(ctx, 'pasta', 'boiled', cx, y, W, 20);
   }
   const patty = plate.find((p) => p.kind === 'patty');
   for (const kind of ['patty', 'cheese', 'lettuce', 'tomato', 'sauce']) {
@@ -732,8 +1274,8 @@ function drawPlateStack(ctx, plate, cx, cy) {
     drawPlateLayer(ctx, kind, state, cx, y, W, LAYER_H);
   }
   if (has('bun')) {
-    y -= 24;
-    drawPlateLayer(ctx, 'bunTop', null, cx, y, W, 24);
+    y -= 16;
+    drawPlateLayer(ctx, 'bunTop', null, cx, y, W, 16);
   }
 }
 
@@ -742,7 +1284,11 @@ function drawServe(ctx, hover) {
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
   rr(ctx, SERVE.x + 3, SERVE.y + 5, SERVE.w, SERVE.h, 14);
   ctx.fill();
-  ctx.fillStyle = '#2f2a26';
+  // Warm dark brown pass — never black.
+  const passGrad = ctx.createLinearGradient(0, SERVE.y, 0, SERVE.y + SERVE.h);
+  passGrad.addColorStop(0, '#63231a');
+  passGrad.addColorStop(1, '#4a1f16');
+  ctx.fillStyle = passGrad;
   rr(ctx, SERVE.x, SERVE.y, SERVE.w, SERVE.h, 14);
   ctx.fill();
   // Awning stripes.
@@ -752,36 +1298,36 @@ function drawServe(ctx, hover) {
   }
   ctx.fillStyle = '#fdf6e3';
   text(ctx, 'SERVICE WINDOW', SERVE.x + SERVE.w / 2, SERVE.y + 62, 22, '#fdf6e3', 'center');
-  text(ctx, 'click here to serve a finished plate', SERVE.x + SERVE.w / 2, SERVE.y + 88, 14, '#c9bda6', 'center');
+  text(ctx, 'click here to serve a finished plate', SERVE.x + SERVE.w / 2, SERVE.y + 88, 14, '#e8b48a', 'center');
   // Warm glow behind the pass so the window feels lit, not void.
-  const serveGlow = ctx.createRadialGradient(SERVE.x + SERVE.w / 2, SERVE.y + 150, 10, SERVE.x + SERVE.w / 2, SERVE.y + 150, 210);
-  serveGlow.addColorStop(0, 'rgba(255,190,90,0.16)');
+  const serveGlow = ctx.createRadialGradient(SERVE.x + SERVE.w / 2, SERVE.y + 110, 10, SERVE.x + SERVE.w / 2, SERVE.y + 110, 190);
+  serveGlow.addColorStop(0, 'rgba(255,190,90,0.22)');
   serveGlow.addColorStop(1, 'rgba(255,190,90,0)');
   ctx.fillStyle = serveGlow;
   ctx.fillRect(SERVE.x, SERVE.y + 34, SERVE.w, SERVE.h - 34);
   // Heat lamps hanging from the awning.
   for (const lx of [SERVE.x + 78, SERVE.x + SERVE.w - 78]) {
-    ctx.strokeStyle = '#1c1917';
+    ctx.strokeStyle = '#2a1a12';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.moveTo(lx, SERVE.y + 96);
-    ctx.lineTo(lx, SERVE.y + 112);
+    ctx.lineTo(lx, SERVE.y + 110);
     ctx.stroke();
     ctx.fillStyle = '#b03a2e';
     ctx.beginPath();
-    ctx.arc(lx, SERVE.y + 116, 16, Math.PI, 0);
+    ctx.arc(lx, SERVE.y + 114, 14, Math.PI, 0);
     ctx.fill();
-    ctx.fillRect(lx - 18, SERVE.y + 112, 36, 6);
+    ctx.fillRect(lx - 16, SERVE.y + 110, 32, 5);
     ctx.fillStyle = '#ffd94d';
-    circle(ctx, lx, SERVE.y + 122, 6);
+    circle(ctx, lx, SERVE.y + 119, 5);
     ctx.fill();
     // Light cone down to the shelf.
-    ctx.fillStyle = 'rgba(255,205,110,0.10)';
+    ctx.fillStyle = 'rgba(255,205,110,0.12)';
     ctx.beginPath();
-    ctx.moveTo(lx - 8, SERVE.y + 124);
-    ctx.lineTo(lx + 8, SERVE.y + 124);
-    ctx.lineTo(lx + 26, SERVE.y + 196);
-    ctx.lineTo(lx - 26, SERVE.y + 196);
+    ctx.moveTo(lx - 7, SERVE.y + 121);
+    ctx.lineTo(lx + 7, SERVE.y + 121);
+    ctx.lineTo(lx + 22, SERVE.y + 140);
+    ctx.lineTo(lx - 22, SERVE.y + 140);
     ctx.closePath();
     ctx.fill();
   }
@@ -801,15 +1347,21 @@ function drawServe(ctx, hover) {
   }
   // Bell.
   const bx = SERVE.x + SERVE.w / 2;
-  const by = SERVE.y + 150;
+  const by = SERVE.y + 118;
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.beginPath();
+  ctx.ellipse(bx, by + 16, 34, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
   ctx.fillStyle = match ? '#ffd94d' : '#8a97a3';
   ctx.beginPath();
-  ctx.arc(bx, by, 34, Math.PI, 0);
+  ctx.arc(bx, by, 30, Math.PI, 0);
   ctx.fill();
-  ctx.fillRect(bx - 40, by - 4, 80, 10);
+  ctx.fillRect(bx - 36, by - 4, 72, 9);
   ctx.fillStyle = '#6b7280';
-  circle(ctx, bx + 46, by + 8, 5);
+  circle(ctx, bx + 41, by + 7, 4.5);
   ctx.fill();
+  // Drink dispensers (ref, right side): 3 red machines, receding.
+  drawDispensers(ctx, SERVE.x + SERVE.w - 168, SERVE.y + 100);
   if (match) {
     const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 140);
     ctx.strokeStyle = 'rgba(255,217,77,' + pulse + ')';
@@ -818,7 +1370,7 @@ function drawServe(ctx, hover) {
     ctx.stroke();
     text(ctx, 'DING! ' + recipeById(match.recipeId).name.toUpperCase() + ' — SERVE NOW', bx, SERVE.y + SERVE.h - 22, 17, '#ffd94d', 'center');
   } else {
-    text(ctx, 'no finished plate yet', bx, SERVE.y + SERVE.h - 22, 14, '#8a8074', 'center');
+    text(ctx, 'no finished plate yet', bx, SERVE.y + SERVE.h - 22, 14, '#e8b48a', 'center');
   }
   if (hover) {
     ctx.strokeStyle = '#ffd94d';
@@ -828,7 +1380,154 @@ function drawServe(ctx, hover) {
   }
 }
 
-// ---------- order board ----------
+// Three red drink dispensers in a row, receding in perspective (ref).
+function drawDispensers(ctx, x, y) {
+  const machines = [
+    { dx: 0, s: 1.0 },
+    { dx: 52, s: 0.88 },
+    { dx: 98, s: 0.76 },
+  ];
+  for (const m of machines) {
+    const mx = x + m.dx;
+    const w = 48 * m.s;
+    const h = 78 * m.s;
+    ctx.save();
+    ctx.translate(mx, y + (1 - m.s) * 30);
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(w / 2, h + 4, w * 0.55, 5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Body: red, glossy.
+    ctx.fillStyle = '#9c261d';
+    rr(ctx, 0, 0, w, h, 8);
+    ctx.fill();
+    ctx.fillStyle = '#c0392b';
+    rr(ctx, 3, 3, w - 6, h * 0.4, 6);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    rr(ctx, 5, 4, 6, h - 10, 3);
+    ctx.fill();
+    // Digital display (glowing green/blue screen).
+    ctx.fillStyle = '#1c2a1e';
+    rr(ctx, w * 0.2, 8 * m.s + 4, w * 0.6, 14, 3);
+    ctx.fill();
+    ctx.fillStyle = '#7ddc8a';
+    rr(ctx, w * 0.26, 8 * m.s + 7, w * 0.48, 8, 2);
+    ctx.fill();
+    // Round buttons.
+    ctx.fillStyle = '#e6d1a3';
+    circle(ctx, w * 0.24, 32 * m.s + 4, 3.5);
+    ctx.fill();
+    ctx.fillStyle = '#f2c94c';
+    circle(ctx, w * 0.42, 32 * m.s + 4, 3.5);
+    ctx.fill();
+    // Glass cup under the spout, red juice, gold saucer.
+    ctx.fillStyle = '#e6d1a3';
+    ctx.beginPath();
+    ctx.ellipse(w / 2, h - 8, 13, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(180,220,255,0.5)';
+    ctx.beginPath();
+    ctx.moveTo(w / 2 - 9, h - 26);
+    ctx.lineTo(w / 2 + 9, h - 26);
+    ctx.lineTo(w / 2 + 7, h - 10);
+    ctx.lineTo(w / 2 - 7, h - 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#b03a2e';
+    ctx.beginPath();
+    ctx.moveTo(w / 2 - 8, h - 22);
+    ctx.lineTo(w / 2 + 8, h - 22);
+    ctx.lineTo(w / 2 + 6.5, h - 11);
+    ctx.lineTo(w / 2 - 6.5, h - 11);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#63231a';
+    ctx.fillRect(w / 2 - 2, h - 34, 4, 8);
+    ctx.restore();
+  }
+}
+
+// ---------- order board: cream ticket cards with dish icons ----------
+// Mini plated-dish icon for a recipe (white plate + hero item + garnish).
+function drawMiniDish(ctx, recipe, cx, cy) {
+  ctx.fillStyle = 'rgba(99,35,26,0.15)';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 10, 24, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + 6, 24, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = '#e6d1a3';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  const needs = recipe.needs;
+  const has = (k) => needs.some((n) => n.kind === k);
+  if (has('bun')) {
+    // Mini burger: bottom bun, patty, lettuce, domed top bun.
+    ctx.fillStyle = '#c98d2e';
+    rr(ctx, cx - 13, cy + 2, 26, 4, 2);
+    ctx.fill();
+    ctx.fillStyle = '#8a542e';
+    rr(ctx, cx - 14, cy - 3, 28, 5, 2);
+    ctx.fill();
+    ctx.fillStyle = '#5da85f';
+    rr(ctx, cx - 14, cy - 6, 28, 3, 1.5);
+    ctx.fill();
+    ctx.fillStyle = '#f6c468';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy - 6, 14, 7, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = '#fff2cf';
+    circle(ctx, cx - 5, cy - 10, 1.2);
+    ctx.fill();
+    circle(ctx, cx + 4, cy - 11, 1.2);
+    ctx.fill();
+  } else if (has('pasta')) {
+    ctx.strokeStyle = '#e8b95a';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.arc(cx + (i - 1) * 9, cy + 4, 6, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#c94a3a';
+    circle(ctx, cx - 8, cy - 2, 2.5);
+    ctx.fill();
+    circle(ctx, cx + 7, cy + 1, 2.5);
+    ctx.fill();
+  } else {
+    // Salad: lettuce ribbons + tomato halves.
+    ctx.strokeStyle = '#5da85f';
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(cx - 12, cy + 2);
+    ctx.quadraticCurveTo(cx, cy - 4, cx + 12, cy + 2);
+    ctx.stroke();
+    ctx.fillStyle = '#d94f3d';
+    circle(ctx, cx - 7, cy - 1, 4);
+    ctx.fill();
+    circle(ctx, cx + 8, cy, 4);
+    ctx.fill();
+  }
+  // Garnish: asparagus spear + lemon wedge on the plate.
+  ctx.strokeStyle = '#5a7d3a';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - 20, cy + 8);
+  ctx.lineTo(cx - 23, cy - 2);
+  ctx.stroke();
+  ctx.fillStyle = '#f2d06b';
+  ctx.beginPath();
+  ctx.moveTo(cx + 20, cy + 6);
+  ctx.arc(cx + 20, cy + 6, 5, -Math.PI * 0.2, Math.PI * 0.7);
+  ctx.closePath();
+  ctx.fill();
+}
+
 function drawOrders(ctx) {
   ctx.fillStyle = '#3a2a1a';
   text(ctx, 'ORDER BOARD', ORDER_BOARD.x + 4, ORDER_BOARD.y + 8, 20, '#3a2a1a');
@@ -842,47 +1541,301 @@ function drawOrders(ctx) {
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     rr(ctx, x + 3, y + 4, TICKET_W, TICKET_H, 12);
     ctx.fill();
-    ctx.fillStyle = '#fff8e7';
+    ctx.fillStyle = '#eae0d9';
     rr(ctx, x, y, TICKET_W, TICKET_H, 12);
     ctx.fill();
+    ctx.strokeStyle = '#ab8e6c';
+    ctx.lineWidth = 2;
+    rr(ctx, x, y, TICKET_W, TICKET_H, 12);
+    ctx.stroke();
     ctx.fillStyle = urgent ? '#d94f3d' : '#8d5a2b';
     rr(ctx, x, y, TICKET_W, 34, 12);
     ctx.fill();
     ctx.fillRect(x, y + 20, TICKET_W, 14);
     text(ctx, '#' + order.id + '  ' + recipe.name.toUpperCase(), x + 12, y + 18, 16, '#fff');
-    text(ctx, '$' + recipe.price, x + TICKET_W - 12, y + 18, 16, '#ffd94d', 'right');
-    // Needed ingredients.
+    text(ctx, '$' + recipe.price, x + TICKET_W - 34, y + 18, 16, '#ffd94d', 'right');
+    // Mini plated-dish icon, left of the needs row.
+    drawMiniDish(ctx, recipe, x + 32, y + 74);
+    // Needed ingredients. 5-need recipes (Double Stack) use tighter spacing
+    // so the last icon never touches the patience bar at the right edge.
+    const needSpacing = recipe.needs.length > 4 ? 40 : 44;
+    const needStartX = recipe.needs.length > 4 ? 72 : 76;
     recipe.needs.forEach((need, j) => {
-      const ix = x + 30 + j * 52;
-      const iy = y + 68;
+      const ix = x + needStartX + j * needSpacing;
+      const iy = y + 72;
       const got = Game.plate.some((p) => p.kind === need.kind && p.state === need.state);
       ctx.fillStyle = got ? 'rgba(93,168,95,0.25)' : 'rgba(0,0,0,0.06)';
-      circle(ctx, ix, iy, 22);
+      circle(ctx, ix, iy, 19);
       ctx.fill();
-      drawIngredient(ctx, need.kind, need.state, ix, iy, 34);
+      drawIngredient(ctx, need.kind, need.state, ix, iy, 30);
       if (got) {
         ctx.strokeStyle = '#5da85f';
         ctx.lineWidth = 3;
-        circle(ctx, ix, iy, 22);
+        circle(ctx, ix, iy, 19);
         ctx.stroke();
       }
     });
-    // Patience bar.
-    const bx = x + 14;
-    const by = y + TICKET_H - 26;
+    // Green vertical patience bar on the right edge.
+    const barX = x + TICKET_W - 16;
+    const barTop = y + 42;
+    const barH = TICKET_H - 52;
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
-    rr(ctx, bx, by, TICKET_W - 28, 12, 6);
+    rr(ctx, barX, barTop, 10, barH, 5);
     ctx.fill();
     ctx.fillStyle = frac > 0.5 ? '#5da85f' : frac > 0.25 ? '#f2a93b' : '#d94f3d';
     if (frac > 0) {
-      rr(ctx, bx, by, (TICKET_W - 28) * frac, 12, 6);
+      const fh = barH * frac;
+      rr(ctx, barX, barTop + barH - fh, 10, fh, 5);
       ctx.fill();
     }
-    text(ctx, Math.ceil(order.patienceLeft) + 's left', x + TICKET_W - 14, by + 6, 12, urgent ? '#d94f3d' : '#8a7a62', 'right');
+    text(ctx, Math.ceil(order.patienceLeft) + 's left', x + 14, y + TICKET_H - 12, 12, urgent ? '#d94f3d' : '#8a7a62');
   });
   if (Game.orders.length === 0) {
     text(ctx, 'No orders — take a breath!', ORDER_BOARD.x + 8, TICKET_TOP + 30, 15, '#8a7a62');
   }
+}
+
+// ---------- ingredient bowls: full containers, contents mounded above the rim ----------
+// Drawn inside a bin tile, centred at (cx, cy); the bowl body sits at
+// cy+6..cy+48 and the food mounds above it to about cy-42.
+function drawBowl(ctx, kind, cx, cy) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.fillStyle = 'rgba(99,35,26,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(0, 48, 52, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+  if (kind === 'bun') {
+    // Wooden basket, 3 domed buns mounded above.
+    for (const dx of [-26, 0, 26]) {
+      ctx.fillStyle = radialGrad(ctx, dx, -30, 22, '#f6c468', '#cf8a26');
+      ctx.beginPath();
+      ctx.ellipse(dx, -26, 18, 13, 0, Math.PI, 0);
+      ctx.fill();
+      ctx.fillStyle = '#fff2cf';
+      circle(ctx, dx - 5, -34, 1.6);
+      ctx.fill();
+      circle(ctx, dx + 4, -36, 1.6);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#a9703f';
+    ctx.beginPath();
+    ctx.moveTo(-52, -8);
+    ctx.lineTo(52, -8);
+    ctx.lineTo(44, 44);
+    ctx.lineTo(-44, 44);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(99,35,26,0.4)';
+    ctx.lineWidth = 2;
+    for (const wy of [6, 20, 34]) {
+      ctx.beginPath();
+      ctx.moveTo(-50 + (wy + 8) * 0.15, wy);
+      ctx.lineTo(50 - (wy + 8) * 0.15, wy);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#c08a4e';
+    rr(ctx, -56, -12, 112, 8, 4);
+    ctx.fill();
+  } else if (kind === 'patty') {
+    // Purple tray, raw pink meat + lettuce + onion rings.
+    ctx.fillStyle = '#8a6fb0';
+    rr(ctx, -54, 2, 108, 42, 8);
+    ctx.fill();
+    ctx.fillStyle = '#a58bc9';
+    rr(ctx, -54, 2, 108, 10, 8);
+    ctx.fill();
+    ctx.fillStyle = '#5da85f';
+    ctx.beginPath();
+    ctx.ellipse(-20, -6, 26, 8, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(22, -4, 24, 8, 0.2, 0, Math.PI * 2);
+    ctx.fill();
+    for (const [dx, dy] of [[-22, -18], [16, -20]]) {
+      ctx.fillStyle = radialGrad(ctx, dx, dy, 26, '#e89a90', '#bd655c');
+      ctx.beginPath();
+      ctx.ellipse(dx, dy, 24, 13, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#f2c9c2';
+      ctx.beginPath();
+      ctx.ellipse(dx - 6, dy - 2, 10, 3, 0.3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.strokeStyle = '#c9a0dc';
+    ctx.lineWidth = 2.5;
+    for (const [dx, dy] of [[-2, -30], [34, -14]]) {
+      circle(ctx, dx, dy, 7);
+      ctx.stroke();
+    }
+  } else if (kind === 'lettuce') {
+    // Green square bowl, mounded leaves + pea bumps.
+    ctx.fillStyle = '#5a7d3a';
+    rr(ctx, -50, -2, 100, 46, 10);
+    ctx.fill();
+    ctx.fillStyle = '#6f9a4a';
+    rr(ctx, -50, -2, 100, 12, 10);
+    ctx.fill();
+    ctx.fillStyle = '#f7f2ea';
+    rr(ctx, -44, 22, 88, 6, 3);
+    ctx.fill();
+    ctx.strokeStyle = '#4e9a4c';
+    ctx.lineWidth = 7;
+    ctx.lineCap = 'round';
+    for (const [dx, dy, w] of [[-24, -14, 44], [4, -22, 48], [28, -10, 40]]) {
+      ctx.beginPath();
+      ctx.moveTo(dx - w / 2, dy);
+      ctx.quadraticCurveTo(dx, dy - 7, dx + w / 2, dy + 2);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#7ccb74';
+    for (const [dx, dy] of [[-30, -26], [-8, -32], [14, -28], [32, -22], [0, -18]]) {
+      circle(ctx, dx, dy, 5);
+      ctx.fill();
+    }
+  } else if (kind === 'tomato') {
+    // Red bowl, mounded tomato slices + herb flecks.
+    ctx.fillStyle = '#c93a2c';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 50, 38, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.fillStyle = '#e06048';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 50, 38, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.fillStyle = '#d94f3d';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 50, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    for (const [dx, dy, r] of [[-22, -16, 13], [4, -24, 14], [26, -12, 12]]) {
+      ctx.fillStyle = '#c93a2c';
+      circle(ctx, dx, dy, r);
+      ctx.fill();
+      ctx.fillStyle = '#f0837a';
+      circle(ctx, dx, dy, r * 0.7);
+      ctx.fill();
+      ctx.fillStyle = '#f7c9c4';
+      ctx.beginPath();
+      ctx.ellipse(dx, dy, r * 0.25, r * 0.35, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#3f6b2f';
+    for (const [dx, dy] of [[-10, -30], [16, -26], [30, -6]]) {
+      ctx.beginPath();
+      ctx.ellipse(dx, dy, 4, 2, 0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  } else if (kind === 'cheese') {
+    // Glass jug of yellow cheese sauce + spoon.
+    ctx.fillStyle = 'rgba(140,170,200,0.45)';
+    rr(ctx, -34, -30, 68, 74, 10);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 2;
+    rr(ctx, -34, -30, 68, 74, 10);
+    ctx.stroke();
+    ctx.fillStyle = '#f2c94c';
+    ctx.beginPath();
+    ctx.ellipse(0, -8, 30, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffd94d';
+    ctx.beginPath();
+    ctx.ellipse(-6, -14, 18, 10, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#e8b32a';
+    for (const [dx, dy] of [[-14, -6], [10, -2], [0, -18]]) {
+      circle(ctx, dx, dy, 3);
+      ctx.fill();
+    }
+    ctx.strokeStyle = '#8a97a3';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(20, -34);
+    ctx.lineTo(36, -52);
+    ctx.stroke();
+    ctx.fillStyle = '#aeb8c2';
+    ctx.beginPath();
+    ctx.ellipse(38, -54, 9, 6, 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  } else if (kind === 'pasta') {
+    // White bowl, mounded pasta strands + marinara dots.
+    ctx.fillStyle = '#f7f2ea';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 52, 38, 0, 0, Math.PI);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 52, 10, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#d8d2c2';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 52, 10, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.strokeStyle = '#e8b95a';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    for (let i = 0; i < 4; i++) {
+      const dx = (i - 1.5) * 20;
+      ctx.beginPath();
+      ctx.arc(dx, -6, 14, Math.PI * 1.1, Math.PI * 1.9);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = '#f0d48a';
+    ctx.lineWidth = 4;
+    for (let i = 0; i < 3; i++) {
+      const dx = (i - 1) * 22;
+      ctx.beginPath();
+      ctx.arc(dx, -16, 12, Math.PI * 1.05, Math.PI * 1.95);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#c94a3a';
+    for (const [dx, dy] of [[-20, -22], [6, -28], [24, -16]]) {
+      circle(ctx, dx, dy, 4);
+      ctx.fill();
+    }
+  } else if (kind === 'sauce') {
+    // White gravy boat, dark brown sauce + spoon.
+    ctx.fillStyle = '#f7f2ea';
+    ctx.beginPath();
+    ctx.ellipse(0, 14, 50, 30, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(44, 4);
+    ctx.lineTo(58, -8);
+    ctx.lineTo(52, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#d8d2c2';
+    ctx.beginPath();
+    ctx.ellipse(0, 14, 50, 30, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#5d3a22';
+    ctx.beginPath();
+    ctx.ellipse(0, 6, 42, 14, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#7a4a2e';
+    ctx.beginPath();
+    ctx.ellipse(-8, 2, 24, 8, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(-12, 0, 12, 4, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#8a97a3';
+    ctx.lineWidth = 5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(24, -6);
+    ctx.lineTo(40, -26);
+    ctx.stroke();
+    ctx.fillStyle = '#aeb8c2';
+    ctx.beginPath();
+    ctx.ellipse(42, -28, 8, 5, 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.restore();
 }
 
 // ---------- bins ----------
@@ -906,7 +1859,7 @@ function drawBins(ctx, hoverBin) {
     ctx.lineWidth = hoverBin === i || isHand ? 3 : 2;
     rr(ctx, r.x, r.y, r.w, r.h, 12);
     ctx.stroke();
-    drawIngredient(ctx, kind, ing.ready, r.x + r.w / 2, r.y + 62, 64);
+    drawBowl(ctx, kind, r.x + r.w / 2, r.y + 62);
     text(ctx, ing.name.toUpperCase(), r.x + r.w / 2, r.y + 122, 15, '#3a2a1a', 'center');
     text(ctx, ing.station ? ing.station.toUpperCase() + ' ' + ing.time + 's' : 'READY TO PLATE', r.x + r.w / 2, r.y + 144, 11, '#8a7a62', 'center');
     text(ctx, String(i + 1), r.x + 10, r.y + 16, 12, '#b9a98e');
@@ -935,17 +1888,20 @@ function drawBins(ctx, hoverBin) {
   text(ctx, 'dump hand / plate', r.x + r.w / 2, r.y + 152, 11, '#8a7a62', 'center');
 }
 
-// ---------- top bar ----------
+// ---------- top bar: warm orange strip, customer progress ----------
 function drawTopbar(ctx) {
-  ctx.fillStyle = '#2f2a26';
+  const barGrad = ctx.createLinearGradient(0, 0, 0, TOPBAR.h);
+  barGrad.addColorStop(0, '#d8645d');
+  barGrad.addColorStop(1, '#c65a3c');
+  ctx.fillStyle = barGrad;
   ctx.fillRect(TOPBAR.x, TOPBAR.y, TOPBAR.w, TOPBAR.h);
-  ctx.fillStyle = '#d94f3d';
+  ctx.fillStyle = '#e6d1a3';
   ctx.fillRect(TOPBAR.x, TOPBAR.y + TOPBAR.h - 4, TOPBAR.w, 4);
   // Title.
   ctx.fillStyle = '#ffd94d';
   circle(ctx, 38, 32, 15);
   ctx.fill();
-  ctx.fillStyle = '#2f2a26';
+  ctx.fillStyle = '#c65a3c';
   circle(ctx, 38, 30, 9);
   ctx.fill();
   text(ctx, 'SIZZLE & SERVE', 62, 33, 26, '#fdf6e3');
@@ -963,21 +1919,45 @@ function drawTopbar(ctx) {
     text(ctx, 'COMBO x' + Game.combo, 474, 33, 17, '#fff', 'center');
   }
   // Goal.
-  text(ctx, 'GOAL $' + STAR_GOALS[2] + '  ·  ★'.repeat(Game.stars) + '☆'.repeat(3 - Game.stars), 560, 33, 16, '#c9bda6');
+  text(ctx, 'GOAL $' + STAR_GOALS[2] + '  ·  ★'.repeat(Game.stars) + '☆'.repeat(3 - Game.stars), 560, 33, 16, '#ffe9c9');
   // Timer (center-right).
   const t = Math.max(0, Math.ceil(Game.timeLeft));
   const mm = Math.floor(t / 60);
   const ss = String(t % 60).padStart(2, '0');
   const frac = Game.timeLeft / SHIFT_LEN;
-  ctx.strokeStyle = Game.timeLeft <= 30 ? '#d94f3d' : '#ffd94d';
+  ctx.strokeStyle = Game.timeLeft <= 30 ? '#ffd94d' : '#fdf6e3';
   ctx.lineWidth = 6;
   ctx.beginPath();
-  ctx.arc(940, 32, 24, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac);
+  ctx.arc(880, 32, 24, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * frac);
   ctx.stroke();
-  text(ctx, mm + ':' + ss, 940, 33, 22, Game.timeLeft <= 30 ? '#ff8a7a' : '#fff', 'center');
-  text(ctx, Game.rush ? 'RUSH HOUR!' : 'SHIFT', 1065, 33, 16, Game.rush ? '#ff8a7a' : '#c9bda6', 'center');
-  // Served / lost.
-  text(ctx, Game.served + ' served · ' + Game.lost + ' lost', 1264, 33, 14, '#c9bda6', 'right');
+  text(ctx, mm + ':' + ss, 880, 33, 22, '#fff', 'center');
+  if (Game.rush) text(ctx, 'RUSH HOUR!', 982, 33, 14, '#ffd94d', 'center');
+  // Customer count icon + green served progress bar.
+  const px = 1040;
+  ctx.fillStyle = '#fdf6e3';
+  circle(ctx, px + 6, 22, 6);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(px + 6, 48, 11, Math.PI, 0);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(253,246,227,0.85)';
+  circle(ctx, px + 20, 24, 5);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(px + 20, 48, 9, Math.PI, 0);
+  ctx.fill();
+  const target = 20;
+  const sfrac = Math.min(1, Game.served / target);
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  rr(ctx, px + 34, 22, 96, 14, 7);
+  ctx.fill();
+  ctx.fillStyle = '#5da85f';
+  if (sfrac > 0) {
+    rr(ctx, px + 34, 22, 96 * sfrac, 14, 7);
+    ctx.fill();
+  }
+  text(ctx, Game.served + '/' + target + ' served', px + 34, 46, 12, '#ffe9c9');
+  text(ctx, Game.lost + ' lost', 1225, 33, 14, '#ffe9c9', 'center');
 }
 
 // ---------- particles, floaters, hand ----------
@@ -1084,23 +2064,10 @@ function drawGame(ctx, mouse, hover) {
   if (Game.shake > 0) {
     ctx.translate((Math.random() - 0.5) * Game.shake, (Math.random() - 0.5) * Game.shake);
   }
-  // Wall: warm vertical gradient + tile grid, floor band at the bottom.
-  const wallGrad = ctx.createLinearGradient(0, 0, 0, STAGE_H);
-  wallGrad.addColorStop(0, '#f9ead0');
-  wallGrad.addColorStop(0.7, '#f3dfb4');
-  wallGrad.addColorStop(1, '#ecd3a0');
-  ctx.fillStyle = wallGrad;
-  ctx.fillRect(0, 0, STAGE_W, STAGE_H);
-  ctx.fillStyle = '#efd9a7';
-  for (let x = 0; x < STAGE_W; x += 64) ctx.fillRect(x, 64, 2, 496);
-  for (let y = 64; y < 560; y += 64) ctx.fillRect(0, y, STAGE_W, 2);
-  // Counter band behind stations.
-  ctx.fillStyle = '#a9703f';
-  ctx.fillRect(304, 560, 960, 16);
-  ctx.fillStyle = '#c08a4e';
-  ctx.fillRect(304, 560, 960, 3);
-  ctx.fillStyle = '#8d5a2b';
-  ctx.fillRect(304, 572, 960, 4);
+  // Restaurant interior background, then the staff behind the counter.
+  drawRestaurant(ctx);
+  drawWaiter(ctx);
+  drawWaitress(ctx);
   // Order board panel.
   ctx.fillStyle = 'rgba(0,0,0,0.10)';
   rr(ctx, 8, 68, 288, 500, 14);

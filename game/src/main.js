@@ -270,13 +270,13 @@ function applyShot() {
     ];
     Game.plateFlash = 99;
     Game.floaters = [
-      { x: 1075, y: 490, text: '+$18', color: '#ffd94d', life: 99, max: 99 },
-      { x: 1075, y: 516, text: 'FAST! +$5 tip', color: '#7ddc8a', life: 99, max: 99 },
+      { x: 808, y: 490, text: '+$18', color: '#ffd94d', life: 99, max: 99 },
+      { x: 808, y: 516, text: 'FAST! +$5 tip', color: '#7ddc8a', life: 99, max: 99 },
     ];
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 10; i++) {
       Game.particles.push({
-        x: 1110 + (Math.random() - 0.5) * 80,
-        y: 420 + (Math.random() - 0.5) * 50,
+        x: 1100 + (Math.random() - 0.5) * 70,
+        y: 420 + (Math.random() - 0.5) * 36,
         vx: 0, vy: 0, life: 99, max: 99,
         size: 4 + Math.random() * 4,
         color: i % 2 ? '#ffd94d' : '#ff8a5c',

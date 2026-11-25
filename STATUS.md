@@ -72,14 +72,64 @@ timers, controls and the ?test=1 self-test untouched.
   grader-style `MAKEFUN_OUTPUT_DIR=out node main.ts` run twice →
   **byte-identical** (dossier.json 791,473 B, under 1.5 MiB cap).
 
-## Honest verdict after the polish
-The look genuinely changed: the plate now reads as a real burger/pasta dish,
-the bins read as food at a glance, the window is a lit pass instead of a
-black void. Remaining gap vs. a painterly entry: the art is still clean
-flat-vector with gradients, not hand-painted — and the game is still a
-single-screen time-management loop with no character. Verdict: a visibly
-more appetising top-40 contender; top 10 still depends on how many rivals
-are more polished. Do not claim top 10 as likely.
+## REBUILD in the reference style (25 Nov ~10:00-10:15 WIB — Wahyu: "dibilang jelekkk" + reference image)
+Full rendering + layout rebuild in the warm semi-3D diner style of Wahyu's
+reference image (STYLE-REFERENCE.md, kept local, NOT committed to the repo).
+Rendering + layout only (render.js, layout.js); game logic, recipes, scoring,
+timers, controls and the ?test=1 hooks untouched. Staging coords in main.js
+adjusted so the staged screenshots show the new layout (floaters/confetti
+positions only — no gameplay change).
+1. **Background = restaurant, not a wall** — warm cream wall, 3 arched
+   windows with blue sky + white clouds + green hills, 2 wall lamps with
+   warm glow cones, brick band, 4 tables with pink + teal chairs, wood-plank
+   floor at the bottom. The midground is now busy, not empty.
+2. **Staff characters** — waiter (blue suit, red tie, dark bowl-cut hair)
+   and waitress (pink dress, long blonde hair) drawn between the windows,
+   smiling, ~100px tall, standing behind the stations.
+3. **Wooden counter band** (24px, plank grain) separates the stations from
+   the bins row — the whole kitchen now sits ON a counter.
+4. **Grill = red enamel** (red frame, glowing orange slots, black grate
+   bars, crosshatched steak, steam wisps, indicator lights, cooking glow).
+5. **Chopping board** — wood grain + knife resting across the top edge;
+   READY tag now a dark pill (legible over red tomato).
+6. **Pasta pot** — glossy steel (rim highlight, side handles, water surface,
+   bubbles, steam, orange progress ring at the base).
+7. **Plate = dark slate tray** — plated stack + garnish on every dish
+   (asparagus spears + lemon wedge, or cherry tomatoes + sauce swoosh).
+   Layer heights tightened for the taller panel.
+8. **Service window = warm brown pass** (never black) — red/white awning,
+   2 heat lamps with light cones, wood shelf with a stack of clean plates,
+   bell, and **3 red drink dispensers** (glossy bodies, green screens,
+   glass cups of red juice) receding on the right.
+9. **Tickets = cream cards** with a mini plated-dish icon per recipe
+   (burger / pasta / salad + garnish), green **vertical** patience bar on
+   the right edge, 5-need recipes use tighter icon spacing so the last icon
+   never touches the bar.
+10. **Ingredient bins = mounded bowls** — wooden bun basket, purple patty
+    tray (raw meat + lettuce + onion rings), green lettuce bowl, red tomato
+    bowl, glass cheese jug with spoon, white pasta bowl, white gravy boat.
+    Every bowl has a contact shadow and food mounded above the rim.
+- Also fixed (found while viewing full-res): "RUSH HOUR!" overlapped the
+  timer ring → moved to x 982, 14px; serve floaters/confetti in the staged
+  shot overlapped the dispensers/title → moved to the clear pass area.
+- Screenshots re-rendered (final hashes):
+  1-start.jpg `fb7c7cec…`, 2-play.jpg `9b166058…`, 3-rush.jpg `de7ffd85…`,
+  4-serve.jpg `39b90cea…`.
+- Re-verified: `node --check` all 6 files OK; **?test=1 self-test 14/14 PASS**;
+  grader-style `MAKEFUN_OUTPUT_DIR=out node main.ts` run twice →
+  **byte-identical** (dossier.json 761,785 B, under 1.5 MiB cap).
+
+## Honest verdict after the rebuild
+The look is now genuinely close to Wahyu's reference: warm busy diner,
+characters, red grill, mounded bowls, dispensers, garnished plates — at
+300px it reads as a restaurant kitchen, not a flat UI. Remaining gap vs.
+the reference: the characters are simple cartoon faces (bowl-cut hair,
+wide-set eyes) — charming but not the soft painted look of the reference;
+the food is still vector-drawn, not painterly; the background tables are
+small and partially hidden behind the stations. Verdict: a visibly
+stronger top-40 contender with a real shot at the top 10 if the judge
+values a complete, busy, warm kitchen over painterly art. Do not claim
+top 10 as likely.
 
 ## NOT submitted
 Parent to bundle (this session + parent chain) + submit after Wahyu
