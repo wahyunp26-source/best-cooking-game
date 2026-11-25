@@ -22,7 +22,9 @@ const PLATE = { x: 320, y: 298, w: 352, h: 262 };
 const SERVE = { x: 688, y: 298, w: 480, h: 262 };
 
 // Ingredient bins along the bottom (7 ingredients + trash).
-const BIN_ROW = { x: 16, y: 576, w: 1248, h: 170 };
+// y=592 leaves a clean 16px gap under the counter band (ends 576) for the
+// INGREDIENTS label, which used to sit at y=566 and get struck through by it.
+const BIN_ROW = { x: 16, y: 592, w: 1248, h: 164 };
 const BIN_GAP = 8;
 const BIN_COUNT = 8;
 

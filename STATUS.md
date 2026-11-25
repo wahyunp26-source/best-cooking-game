@@ -44,6 +44,43 @@ Fast-paced dinner-shift cooking game (1280x800 canvas, mouse + keys 1-7/T/S/M):
   failure is transcripts_present (no --transcripts given; the bundle is
   made by the parent at submit time, per the usual pattern).
 
+## Visual polish pass (25 Nov ~09:45-09:55 WIB — Wahyu: "bentuknya jelek")
+Targeted edits only (render.js + layout.js); game logic, recipes, scoring,
+timers, controls and the ?test=1 self-test untouched.
+1. **INGREDIENTS label overlap FIXED** — BIN_ROW moved y 576→592 (h 170→164);
+   label now sits fully below the counter band, clean spacing, verified in
+   all 4 shots.
+2. **Food shapes redrawn with depth** — radial/linear gradients, highlights,
+   contact shadows on large icons: bun (domed, sesame, rim), patty (grill
+   marks + top shine + bottom edge; raw pink with speckles), lettuce (whole
+   ruffled leaf; chopped wavy ribbons in two greens), tomato (gradient +
+   stem + leaves; slice with rim/flesh/seeds/sheen), cheese (3D wedge with
+   side face + holes; chopped wavy shreds), pasta (strands in two tones;
+   boiled arcs + marinara dots), sauce (radial gradient + shine).
+3. **Service window filled** — warm radial glow, two hanging heat lamps with
+   light cones, wood pass shelf, stack of clean plates.
+4. **Station depth** — grill (inner top shadow, horizontal grates, ember
+   glow), chopping board (wood grain, inner shadow), pasta pot (steel
+   gradient, side handles, bright rim, elliptical water surface, steam
+   wisps while boiling); station headers got an under-header shadow line.
+5. **Overall polish** — wall is a warm vertical gradient, counter band has a
+   top highlight, ingredient bins have a top highlight line.
+- New screenshots (real renders, 1280x800 JPEG, 96-153 KB, under 256 KiB cap):
+  1-start.jpg `21202358…`, 2-play.jpg `59823fac…`, 3-rush.jpg `b954999a…`,
+  4-serve.jpg `af6cd5ba…`.
+- Re-verified: `node --check` all 6 files OK; **?test=1 self-test 14/14 PASS**;
+  grader-style `MAKEFUN_OUTPUT_DIR=out node main.ts` run twice →
+  **byte-identical** (dossier.json 791,473 B, under 1.5 MiB cap).
+
+## Honest verdict after the polish
+The look genuinely changed: the plate now reads as a real burger/pasta dish,
+the bins read as food at a glance, the window is a lit pass instead of a
+black void. Remaining gap vs. a painterly entry: the art is still clean
+flat-vector with gradients, not hand-painted — and the game is still a
+single-screen time-management loop with no character. Verdict: a visibly
+more appetising top-40 contender; top 10 still depends on how many rivals
+are more polished. Do not claim top 10 as likely.
+
 ## NOT submitted
 Parent to bundle (this session + parent chain) + submit after Wahyu
 approves the preview. No submit has been made; quota untouched.
