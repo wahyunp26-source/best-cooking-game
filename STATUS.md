@@ -163,6 +163,57 @@ A real-time 3D rewrite was NOT attempted (no time to re-verify before the
 top 10 depends on how the AI judge weighs a complete playable game with a
 warm busy kitchen against painterly/3D rivals. Do not claim top 10 as likely.
 
+## Composite 3D backdrop (25 Nov ~10:40-11:00 WIB — Wahyu: "Gas composite 3D 🖼️")
+The generated 3D dining-room render is now the game's static backdrop, with
+the dynamic canvas game drawn on top. Rendering + layout only (render.js,
+main.js staged coords); game logic, recipes, scoring, timers, controls and
+the ?test=1 self-test untouched.
+1. **Asset** — `game/assets/backdrop.jpg` (270 KB, 1280x800): the generated
+   3D render (2048x1152 webp) cover-fit to the stage. Full-stage, so the
+   3D staff faces land at y~76-170 — fully visible above the stations
+   (y196). Legal per the competition rules: every image the game loads is
+   a file under game/; the dossier caps allow it (game_max_bytes 48 MiB).
+2. **Wiring** — `render.js` loads it async (`new Image()`, `assets/
+   backdrop.jpg`); `drawGame` draws the vector restaurant as underlay,
+   then the photo full-stage, then re-draws the two wood counter bands
+   over the photo so the kitchen sits ON a counter. The photo's own staff
+   stand behind the stations, so the vector waiter/waitress are only
+   drawn if the photo fails to load (fallback; `window.__backdropReady`
+   flag for the shot harness). Counter bands extracted from
+   `drawRestaurant` into `drawCounterBands`.
+3. **De-doubling** — the photo already has the 3D drink dispensers, so
+   the vector dispensers were removed from the serve window (replaced by
+   a second clean-plate stack under the right heat lamp); the DING / "no
+   finished plate yet" texts re-centred under the bell; staged serve
+   floaters moved to x1000 (clear right side). The photo's dispensers
+   peek above the window like machines behind the pass.
+4. **Label fix** — the INGREDIENTS label was unreadable over the busy
+   photo strip: it now sits on a paper pill (measured width) — legible in
+   all 4 shots.
+5. **Known nits (left as-is)** — the photo's purple raw-meat tray shows
+   below the bins at bottom-left (it is IN Wahyu's reference image, reads
+   as a tray under the counter); the photo's bowls peek through the 8px
+   gaps between bin tiles (reads as food on the counter behind the bins).
+- Screenshots re-rendered (final hashes): 1-start.jpg `51da742d…`,
+  2-play.jpg `700c6cd1…`, 3-rush.jpg `170fbc62…`, 4-serve.jpg
+  `df03c042…` (all 108–204 KB, under the 256 KiB cap). Backdrop-ready on
+  all 4 shots; self-test **14/14 PASS**; grader-style
+  `MAKEFUN_OUTPUT_DIR=out node main.ts` run twice → **byte-identical**
+  (dossier.json 1,049,035 B, under the 1.5 MiB cap; asset copied into
+  out/game/assets/). `makefun check --repo`: **4 passed, 1 failed
+  (transcripts_present — parent's bundle job), 15 skipped** — same as
+  before, no new failure from the asset.
+
+## Honest verdict after the composite
+This is the first version that genuinely looks 3D at first glance: a real
+rendered dining room (windows, lamps, tables, chairs, 3D staff) with the
+playable kitchen on top — the closest yet to Wahyu's reference image. The
+game elements themselves are still canvas-vector (stations, plates, bowls),
+so it is a 2.5D composite, not a full 3D game — but the frame reads as a
+3D diner kitchen, which is what the screenshots are judged on. Top 10 is
+now credible; whether the judge rewards the composite over fully-painted
+rivals is unknowable from here. Do not claim top 10 as likely.
+
 ## NOT submitted
 Parent to bundle (this session + parent chain) + submit after Wahyu
 approves the preview. No submit has been made; quota untouched.

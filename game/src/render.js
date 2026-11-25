@@ -205,6 +205,16 @@ function drawTable(ctx, x, y) {
   ctx.fill();
 }
 
+// 3D dining-room backdrop (a rendered image made for this entry): the
+// photo replaces the flat vector wall behind the kitchen. If the file
+// cannot load, the game falls back to the vector restaurant below.
+const backdropImg = new Image();
+let backdropReady = false;
+window.__backdropReady = false;
+backdropImg.onload = () => { backdropReady = true; window.__backdropReady = true; };
+backdropImg.onerror = () => { window.__backdropError = true; };
+backdropImg.src = 'assets/backdrop.jpg';
+
 function drawRestaurant(ctx) {
   // Wall: warm cream gradient.
   const wall = ctx.createLinearGradient(0, 64, 0, 560);
@@ -263,8 +273,14 @@ function drawRestaurant(ctx) {
   }
   ctx.fillStyle = 'rgba(99,35,26,0.18)';
   for (let fx = 180; fx < STAGE_W; fx += 320) ctx.fillRect(fx, 568, 2, 188);
-  // Wooden counter edge between the station row and the plate row —
-  // a real glossy counter band the stations sit ON, with grain + shine.
+  // (Counter bands moved to drawCounterBands — drawn over the photo.)
+}
+
+// Wooden counter bands (extracted from drawRestaurant): drawn over the 3D
+// backdrop photo so the stations and the plate row sit ON a counter.
+function drawCounterBands(ctx) {
+  // Band between the station row and the plate row — a real glossy
+  // counter band the stations sit ON, with grain + shine.
   ctx.fillStyle = 'rgba(99,35,26,0.25)';
   ctx.fillRect(304, 344, 976, 6);
   ctx.fillStyle = '#a9703f';
@@ -283,7 +299,7 @@ function drawRestaurant(ctx) {
   ctx.stroke();
   ctx.fillStyle = '#8d5a2b';
   ctx.fillRect(304, 362, 976, 4);
-  // Wooden counter edge under the plate/serve row.
+  // Band under the plate/serve row.
   ctx.fillStyle = 'rgba(99,35,26,0.25)';
   ctx.fillRect(304, 558, 976, 6);
   ctx.fillStyle = '#a9703f';
@@ -1428,18 +1444,24 @@ function drawServe(ctx, hover) {
   ctx.fillStyle = '#6b7280';
   circle(ctx, bx + 41, by + 7, 4.5);
   ctx.fill();
-  // Drink dispensers (ref, right side): 3 large red machines, receding.
-  // Bigger than before (~1.4x) so they read at 300px like the reference.
-  drawDispensers(ctx, SERVE.x + SERVE.w - 190, SERVE.y + 94);
+  // Second stack of clean plates on the right (under the right heat lamp).
+  // The photo behind the window already has the 3D drink dispensers, so
+  // the vector ones are NOT drawn here — no doubling.
+  for (let i = 0; i < 3; i++) {
+    ctx.fillStyle = i === 2 ? '#ffffff' : '#e8e2d4';
+    ctx.beginPath();
+    ctx.ellipse(SERVE.x + SERVE.w - 62, shelfY - 2 - i * 5, 26, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
   if (match) {
     const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 140);
     ctx.strokeStyle = 'rgba(255,217,77,' + pulse + ')';
     ctx.lineWidth = 5;
     rr(ctx, SERVE.x - 3, SERVE.y - 3, SERVE.w + 6, SERVE.h + 6, 16);
     ctx.stroke();
-    text(ctx, 'DING! ' + recipeById(match.recipeId).name.toUpperCase() + ' — SERVE NOW', bx - 88, SERVE.y + SERVE.h - 22, 14, '#ffd94d', 'center');
+    text(ctx, 'DING! ' + recipeById(match.recipeId).name.toUpperCase() + ' — SERVE NOW', bx, SERVE.y + SERVE.h - 22, 14, '#ffd94d', 'center');
   } else {
-    text(ctx, 'no finished plate yet', bx - 58, SERVE.y + SERVE.h - 22, 14, '#e8b48a', 'center');
+    text(ctx, 'no finished plate yet', bx, SERVE.y + SERVE.h - 22, 14, '#e8b48a', 'center');
   }
   if (hover) {
     ctx.strokeStyle = '#ffd94d';
@@ -1911,7 +1933,14 @@ function drawBowl(ctx, kind, cx, cy) {
 // ---------- bins ----------
 function drawBins(ctx, hoverBin) {
   // Label sits fully below the counter band (ends y=576): baseline 584.
-  text(ctx, 'INGREDIENTS — click one, then click a station or the plate', BIN_ROW.x + 4, BIN_ROW.y - 8, 15, '#3a2a1a');
+  // Paper pill behind the text — the 3D photo behind this strip is busy.
+  const label = 'INGREDIENTS — click one, then click a station or the plate';
+  ctx.font = 'bold 15px Arial, sans-serif';
+  const labelW = ctx.measureText(label).width;
+  ctx.fillStyle = '#fbf1d8';
+  rr(ctx, BIN_ROW.x, BIN_ROW.y - 24, labelW + 20, 24, 12);
+  ctx.fill();
+  text(ctx, label, BIN_ROW.x + 10, BIN_ROW.y - 8, 15, '#3a2a1a');
   BIN_ORDER.forEach((kind, i) => {
     const r = binRect(i);
     const ing = INGREDIENTS[kind];
@@ -2141,10 +2170,18 @@ function drawGame(ctx, mouse, hover) {
   if (Game.shake > 0) {
     ctx.translate((Math.random() - 0.5) * Game.shake, (Math.random() - 0.5) * Game.shake);
   }
-  // Restaurant interior background, then the staff behind the counter.
+  // Background: vector restaurant as the underlay, then the 3D photo over
+  // it. The photo's own staff stand behind the stations, so the vector
+  // staff are only drawn when the photo has not loaded (fallback).
+  // Counter bands go over the photo so the kitchen sits ON a counter.
   drawRestaurant(ctx);
-  drawWaiter(ctx);
-  drawWaitress(ctx);
+  if (backdropReady) {
+    ctx.drawImage(backdropImg, 0, 0, STAGE_W, STAGE_H);
+  } else {
+    drawWaiter(ctx);
+    drawWaitress(ctx);
+  }
+  drawCounterBands(ctx);
   // Order board panel.
   ctx.fillStyle = 'rgba(0,0,0,0.10)';
   rr(ctx, 8, 68, 288, 500, 14);
